@@ -15,9 +15,10 @@
     <link rel="stylesheet" href="css/content/export-content.css">
     <link rel="stylesheet" href="css/panel-control/panel-control.css">
     <link rel="stylesheet" href="css/panel-control/panel-config/panel-config.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/pads/select-mode.css">
     <link rel="stylesheet" href="css/panel-control/panel-config/pads/pads-mode.css">
     <link rel="stylesheet" href="css/panel-control/panel-config/pads/pads-config.css">
-    <link rel="stylesheet" href="css/panel-control/panel-config/pads/groups-config.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/pads/groups-mode.css">
     <link rel="stylesheet" href="css/panel-control/panel-config/sequencer/sequencer-mode.css">
     <link rel="stylesheet" href="css/panel-control/panel-config/sequencer/sequencer-config.css">
     <link rel="stylesheet" href="css/panel-control/console/console.css">
@@ -34,13 +35,7 @@
 
             <!-- CONTENT ZONE → content-zone.js/css -->
             <div class="content-zone">
-
-                <div class="pads-content" id="padsContent"></div>
-
-                <div class="sequencer-content" id="sequencerContent"></div>
-
-                <div class="export-content" id="exportContent"></div>
-
+                <!-- Vues générées dynamiquement par app.js -->
             </div>
 
             <!-- PANEL CONTROL → panel-control.js/css -->
@@ -48,21 +43,13 @@
 
                 <!-- PANEL CONFIG → panel-config.js/css -->
                 <div class="panel-config" id="panelConfig">
-
-                    <div class="pads-config" id="padsConfig"></div>
-
-                    <div class="pads-mode" id="padsMode"></div>
-
-                    <div class="groups-config" id="groupsConfig"></div>
-
-                    <div class="sequencer-mode" id="sequencerMode"></div>
-
-                    <div class="sequencer-config" id="sequencerConfig"></div>
-
+                    <!-- Config générée dynamiquement par app.js -->
                 </div>
 
                 <!-- CONSOLE → console.js/css -->
-                <div class="console-container" id="consoleContainer"></div>
+                <div class="console-container" id="consoleContainer">
+                    <!-- Console générée par console.js -->
+                </div>
 
             </aside>
 
@@ -70,31 +57,22 @@
 
     </main>
 
-    <!-- SCRIPTS selon structure.txt -->
-    <script src="app.js"></script>
+    <!-- SCRIPTS - ORDRE IMPORTANT : modules avant app.js -->
     <script src="js/midi/midi.js"></script>
     <script src="js/header/header.js"></script>
-    <script src="js/content/content-zone.js"></script>
     <script src="js/content/pads-content.js"></script>
     <script src="js/content/sequencer-content.js"></script>
     <script src="js/content/export-content.js"></script>
-    <script src="js/panel-control/panel-control.js"></script>
-    <script src="js/panel-control/panel-config/panel-config.js"></script>
+    <script src="js/panel-control/panel-config/pads/select-mode.js"></script>
     <script src="js/panel-control/panel-config/pads/pads-mode.js"></script>
+    <script src="js/panel-control/panel-config/pads/groups-mode.js"></script>
+    <script src="js/panel-control/panel-config/pads/pads-colors.js"></script>
     <script src="js/panel-control/panel-config/pads/pads-config.js"></script>
-    <script src="js/panel-control/panel-config/pads/groups-config.js"></script>
     <script src="js/panel-control/panel-config/sequencer/sequencer-mode.js"></script>
     <script src="js/panel-control/panel-config/sequencer/sequencer-config.js"></script>
     <script src="js/panel-control/console/console.js"></script>
-
-    <script>
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof App !== 'undefined') {
-                App.init();
-            }
-        });
-    </script>
+    <!-- APP.JS EN DERNIER -->
+    <script src="app.js"></script>
 
 </body>
 
