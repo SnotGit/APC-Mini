@@ -33,6 +33,12 @@
     transform: translateY(-1px);
 }
 
+/* ===== MODE SÉQUENCEUR - HOVER BLANC ===== */
+.pad-grid.sequencer-mode .pad:hover {
+    border-color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
 /* États des pads */
 .pad.selected {
     border-color: #ffffff !important;

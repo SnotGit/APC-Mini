@@ -1,32 +1,52 @@
-.config-mode-selector {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.mode-btn {
-    flex: 1;
-    padding: 12px 12px;
-    background: #3a3a3a;
-    border: 2px solid #555;
+/* ===== INFO SECTION ===== */
+.info-section {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #555;
     border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+/* ===== INFO TITLE ===== */
+.info-title {
+    font-weight: 600;
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== INFO CONTENT ===== */
+.info-content {
+    font-size: 14px;
     color: #e0e0e0;
-    font-size: 13px;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-transform: capitalize;
-    font-family: inherit;
+    line-height: 1.4;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.mode-btn:hover {
-    background: #4a4a4a;
-    border-color: #5aa3d0;
-    color: #8bd3ff;
+/* ===== PAD INFO CONTENT STATES ===== */
+.info-content:empty::before {
+    content: "NUMERO PAD / NOTE PAD";
+    color: #666;
+    font-style: italic;
 }
 
-.mode-btn.active {
-    background: #3a3a3a;
-    color: #5aa3d0;
-    border-color: #5aa3d0;
+/* ===== HOVER/FOCUS STATES ===== */
+.info-section:hover {
+    border-color: #666;
+}
+
+.info-section:hover .info-content {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
 }

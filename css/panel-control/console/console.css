@@ -1,44 +1,55 @@
 .console-container {
     flex: 1;
     background: #2a2a2a;
-    border: 2px solid #444;
     border-radius: 12px;
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    height: 45%;
+    height: 50%;
 }
 
 .console-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 10px;
     margin-bottom: 10px;
-    border-bottom: 1px solid #444;
 }
 
 .console-title {
     color: #5aa3d0;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px;
+}
+
+.connection-status {
+    border-radius: 6px;
+    color: #e74c3c;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.connection-status.connected {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
 }
 
 .console-clear {
     background: transparent;
-    border: 1px solid #555;
+    border: 2px solid #555;
     color: #888;
-    padding: 8px 20px;
+    padding: 6px 16px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     border-radius: 4px;
     transition: all 0.2s ease;
 }
 
 .console-clear:hover {
-    color: #e74c3c;
-    background: rgba(231, 76, 60, 0.1);
-    border-color: #e74c3c;
+    color: #ffffff;
+    border-color: #ffffff;
 }
 
 .console-content {
@@ -73,4 +84,5 @@
 .timestamp { 
     color: #888;
     margin-right: 8px;
+    font-size: 11px;
 }

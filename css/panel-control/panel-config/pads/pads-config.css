@@ -1,102 +1,31 @@
-/* ===== BOUTONS MODE ===== */
-.config-mode-selector {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.mode-btn {
-    flex: 1;
-    padding: 12px 12px;
-    background: #3a3a3a;
-    border: 2px solid #555;
-    border-radius: 8px;
-    color: #e0e0e0;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-transform: capitalize;
-}
-
-.mode-btn:hover {
-    background: #4a4a4a;
-    border-color: #5aa3d0;
-    color: #8bd3ff;
-}
-
-.mode-btn.active {
-    background: #3a3a3a;
-    color: #5aa3d0;
-    border-color: #5aa3d0;
-}
-
-/* ===== CONTAINERS FIXES IDENTIQUES ===== */
-
-.info-section,
-.groups-section {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 10px;
-    height: 220px;
-}
-
-.info-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-}
-
-.groups-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.info-title {
-    font-weight: 600;
-    font-size: 11px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.info-content {
-    font-size: 13px;
-    color: #e0e0e0;
-    font-weight: 500;
-}
-
-.group-btn {
+/* ===== CONTAINER PRINCIPAL PADS-CONFIG ===== */
+.pads-config-container {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #666;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #ccc;
-    font-weight: 500;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.group-btn:hover {
-    border-color: #888;
-    background: rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
+/* ===== HEADER SECTION (SELECT MODE) ===== */
+#selectModeContainer {
+    flex-shrink: 0;
 }
 
-.group-btn.active {
-    border-color: #5aa3d0;
-    background: #5aa3d0;
-    color: white;
-    box-shadow: 0 2px 4px rgba(90, 163, 208, 0.3);
+/* ===== CONTENT SECTION (DYNAMIQUE) ===== */
+.config-content-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ===== SECTION COULEURS ===== */
+/* ===== FOOTER SECTION (COULEURS) ===== */
+#padsColorsContainer {
+    flex-shrink: 0;
+}
+
+/* ===== SECTION COULEURS (FOOTER) ===== */
 .color-section {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid #555;
@@ -106,6 +35,7 @@
     justify-content: center;
     align-items: center;
     height: 50px;
+    padding: 8px;
 }
 
 .color-btn {
@@ -127,7 +57,7 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-/* Couleurs spécifiques */
+/* ===== COULEURS SPÉCIFIQUES ===== */
 .color-btn.green {
     background: #4CAF50;
     border-color: #4CAF50;
@@ -155,83 +85,4 @@
 .color-btn.clear:hover {
     border-color: #aaa;
     background: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== SECTION SEQUENCEUR ===== */
-.sequencer-section {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-}
-
-.sequencer-toggle {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #666;
-    border-radius: 6px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 13px;
-    color: #ffffff;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    height: 35px;
-    width: 100%;
-
-}
-
-.sequencer-toggle:hover {
-    border-color: #888;
-    background: rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
-}
-
-.sequencer-toggle input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    cursor: pointer;
-    accent-color: #ffb516;
-    margin-right: 6px;
-}
-
-.sequencer-toggle input[type="checkbox"]:disabled {
-    opacity: 0.2;
-    cursor: not-allowed;
-}
-
-.bars-switch {
-    display: flex;
-    gap: 2px;
-}
-
-.bars-btn {
-    padding: 2px 8px;
-    background: #3a3a3a;
-    border: 1px solid #555;
-    border-radius: 3px;
-    color: #ccc;
-    font-size: 9px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    height: 18px;
-    min-width: 30px;
-    font-weight: 500;
-}
-
-.bars-btn:hover {
-    background: #4a4a4a;
-    border-color: #666;
-}
-
-.bars-btn.active {
-    background: #5aa3d0;
-    border-color: #5aa3d0;
-    color: white;
 }

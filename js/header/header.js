@@ -1,36 +1,28 @@
-
 const Header = {
 
     // ===== ÉTAT =====
     currentView: 'pads',
-    isConnected: false,
 
     // ===== INITIALISATION =====
     init() {
         this.createHeader();
         this.setupEventListeners();
-        this.updateConnectionStatus(false);
     },
 
     // ===== CRÉATION CONTENU =====
     createHeader() {
-        const header = document.getElementById('header');
-        if (!header) return;
+        const headerContainer = document.getElementById('headerContainer');
+        if (!headerContainer) return;
 
-        header.className = 'header';
-        header.innerHTML = `
-            <div class="header-container">
-
-                <div class="header-title"><h1>AKAI APC MINI MK1</h1></div>
+        headerContainer.innerHTML = `
+            <div class="header-title">
+                <h1>AKAI APC MINI MK1</h1>
+            </div>
             
-                <div class="header-navigation">
-                    <button class="header-btn active" data-view="pads">Pads</button>
-                    <button class="header-btn" data-view="sequencer">Sequenceur</button>
-                    <button class="header-btn" data-view="export">Export</button>
-                </div>
-            
-                <div class="connection-status" id="connectionStatus">Déconnecté</div>
-
+            <div class="header-navigation">
+                <button class="header-btn active" data-view="pads">Pads</button>
+                <button class="header-btn" data-view="sequencer">Sequenceur</button>
+                <button class="header-btn" data-view="export">Export</button>
             </div>
         `;
     },
@@ -39,7 +31,7 @@ const Header = {
     setupEventListeners() {
         const headerButtons = document.querySelectorAll('.header-btn[data-view]');
 
-        navButtons.forEach(button => {
+        headerButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const viewId = button.dataset.view;
                 this.switchView(viewId);

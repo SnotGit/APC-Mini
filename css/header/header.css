@@ -1,4 +1,3 @@
-
 .header-container {
     height: 100px;
     display: flex;
@@ -25,6 +24,7 @@
 .header-navigation {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
     gap: 10px;
 }
 
@@ -51,28 +51,4 @@
     background-color: #5aa3d0;
     border-color: #5aa3d0;
     color: #ffffff;
-}
-
-/* ===== HEADER STATUS ===== */
-.connexion-status {
-    display: flex;
-    justify-content: flex-end;
-}
-
-#connectionStatus {
-    padding: 10px 20px;
-    border: 2px solid #bb0000;
-    border-radius: 8px;
-    background-color: transparent;
-    color: #e60000;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-
-#connectionStatus.connected {
-    background-color: #2ecc71;
-    border-color: #27ae60;
-    color: #000;
 }
