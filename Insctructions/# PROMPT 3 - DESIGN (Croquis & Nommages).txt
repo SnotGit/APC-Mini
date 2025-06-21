@@ -1,0 +1,129 @@
+# PROMPT 3 - DESIGN (Croquis & Nommages)
+
+## 🎨 REPRODUCTION VISUELLE EXACTE
+
+### Code existant = référence visuelle
+Le repository existant fournit **l'apparence finale** à reproduire exactement :
+- **Couleurs** : hexadecimales, RGB, noms CSS utilisés
+- **Positions** : layouts, espacements, marges, paddings 
+- **Tailles** : dimensions des éléments, proportions
+- **Interactions** : hover, active, focus, disabled states
+- **Animations** : transitions, effets visuels existants
+
+### Obligation de fidélité
+**REPRODUIRE À L'IDENTIQUE :**
+- Même rendu visuel final dans le navigateur
+- Mêmes couleurs et contrastes
+- Mêmes espacements et alignements  
+- Mêmes comportements interactifs
+- Même feeling et expérience utilisateur
+
+## 📐 TRAITEMENT DES CROQUIS EXCALIDRAW
+
+### Structure containers obligatoire
+- **UTILISER EXACTEMENT** les noms de containers fournis dans les croquis
+- **RESPECTER** la hiérarchie parent/enfant indiquée
+- **MAINTENIR** les proportions visuelles approximatives
+- **REPRODUIRE** le code couleur des bordures pour identification des zones
+
+### Gestion des zones vides
+**ZONES BLANCHES/VIDES = ATTENTE ABSOLUE :**
+- **Créer** le container avec le nom exact fourni
+- **Laisser VIDE** sans contenu inventé
+- **Ajouter** un placeholder minimal et neutre si nécessaire
+- **DEMANDER EXPLICITEMENT** le contenu souhaité pour ces zones
+
+### Éléments non documentés
+**BOUTONS/CONTRÔLES sans spécification claire :**
+- **Créer** l'élément selon l'apparence du croquis
+- **DEMANDER** le comportement et la fonction attendus
+- **Ne JAMAIS supposer** l'action ou l'interaction
+- **Attendre** confirmation avant d'implémenter la logique
+
+## 🏷️ NOMMAGES UTILISATEUR = LOI ABSOLUE
+
+### Respect strict des conventions
+- **UTILISER EXACTEMENT** les noms fournis par l'utilisateur
+- **JAMAIS "corriger"** ou "améliorer" selon des conventions externes
+- **JAMAIS substituer** par des noms "plus logiques" techniquement
+- **Si l'utilisateur dit "config-content-pads"** → utiliser "config-content-pads"
+
+### Exemples d'erreurs à éviter
+**❌ INTERDIT :**
+- `config-content-pads` → `view-pads` (substitution non autorisée)
+- `panel-header-container` → `header-section` (simplification non demandée)
+-  renommage technique non voulu
+
+**✅ CORRECT :**
+- Respecter exactement le nommage fourni
+- Demander clarification si un nom semble manquer
+- Conserver la logique de nommage de l'utilisateur
+
+### Cohérence projet
+- **Maintenir** le système de nommage utilisateur à travers tous les fichiers
+- **Utiliser** les mêmes conventions pour les nouveaux éléments
+- **Demander** confirmation pour les noms non spécifiés
+- **Respecter** la logique organisationnelle de l'utilisateur
+
+## 🔍 ANALYSE VISUELLE REQUISE
+
+### Extraction des styles existants
+- **Inventorier** toutes les classes CSS utilisées
+- **Noter** les couleurs exactes (hex, RGB, HSL)
+- **Mesurer** les espacements et dimensions
+- **Identifier** les polices et tailles de texte
+- **Répertorier** les effets et transitions
+
+### Documentation des états
+- **États normaux** : apparence par défaut des éléments
+- **États interactifs** : hover, active, focus, visited
+- **États conditionnels** : selected, disabled, loading, error
+- **Variations** : différentes tailles, types, contextes
+
+### Patterns visuels
+- **Identifier** les composants réutilisés
+- **Noter** les variations de styles similaires
+- **Comprendre** la logique de design global
+- **Respecter** la cohérence visuelle existante
+
+## 🚫 INTERDICTIONS DESIGN
+
+### Modifications visuelles interdites
+**NE JAMAIS :**
+- Changer les couleurs sans demande explicite
+- Modifier les espacements ou alignements
+- Ajuster les tailles ou proportions arbitrairement
+- "Corriger" ce qui semble visuellement défaillant
+- Moderniser l'apparence selon des goûts personnels
+
+### Inventions interdites
+**NE JAMAIS :**
+- Créer du contenu pour les zones vides des croquis
+- Inventer des interactions non documentées
+- Ajouter des éléments décoratifs non demandés
+- Supposer l'apparence d'éléments manquants
+
+## ✅ LIVRABLES DESIGN
+
+### Documentation visuelle
+1. **Inventaire complet** : tous les éléments visuels identifiés
+2. **Palette couleurs** : codes exacts utilisés
+3. **Guide espacement** : marges, paddings, gaps mesurés
+4. **États interactifs** : comportements hover/active/focus
+5. **Structure containers** : hiérarchie selon croquis Excalidraw
+
+### Validation requise
+- **Présenter** l'analyse visuelle complète
+- **Confirmer** la compréhension des croquis
+- **Valider** les noms de containers et éléments
+- **Accorder** sur l'apparence finale attendue
+
+## 🎯 OBJECTIF DESIGN
+
+**RÉSULTAT ATTENDU :**
+- Interface visuellement identique au design original
+- Structure HTML moderne respectant les nommages utilisateur
+- CSS refactorisé reproduisant l'apparence exacte
+- Base design cohérente pour développements futurs
+
+**PRINCIPE :** Fidélité absolue à l'apparence, respect total des nommages, modernité technique invisible pour l'utilisateur final.

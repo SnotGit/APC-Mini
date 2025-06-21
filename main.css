@@ -1,0 +1,35 @@
+/* ====================================
+   MAIN CSS - AKAI APC MINI MK1
+   ==================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    height: 100vh;
+    max-width: 70%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 30px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.main-container {
+    flex: 1;
+    display: flex;
+    gap: 30px;
+    overflow: hidden;
+}

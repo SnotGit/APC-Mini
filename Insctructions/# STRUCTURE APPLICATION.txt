@@ -1,0 +1,48 @@
+**Stucture App**
+
+└── AKAI APC MINI MK1
+    ├── css
+    │   ├── content
+    │   │   ├── export-content.css
+    │   │   ├── pads-content.css
+    │   │   └── sequencer-content.css
+    │   ├── header
+    │   │   └── header.css
+    │   └── panel-control
+    │       ├── console
+    │       │   └── console.css
+    │       ├── panel-config
+    │       │   ├── pads
+    │       │   │   ├── groups-config.css
+    │       │   │   ├── pads-config.css
+    │       │   │   └── pads-mode.css
+    │       │   ├── sequencer
+    │       │   │   ├── sequencer-config.css
+    │       │   │   └── sequencer-mode.css
+    │       │   └── panel-config.css
+    │       └── panel-control.css
+    ├── js
+    │   ├── content
+    │   │   ├── export-content.js
+    │   │   ├── pads-content.js
+    │   │   └── sequencer-content.js
+    │   ├── header
+    │   │   └── header.js
+    │   ├── midi
+    │   │   └── midi.js
+    │   └── panel-control
+    │       ├── console
+    │       │   └── console.js
+    │       ├── panel-config
+    │       │   ├── pads
+    │       │   │   ├── groups-config.js
+    │       │   │   ├── pads-config.js
+    │       │   │   └── pads-mode.js
+    │       │   ├── sequencer
+    │       │   │   ├── sequencer-config.js
+    │       │   │   └── sequencer-mode.js
+    │       │   └── panel-config.js
+    │       └── panel-control.js
+    ├── app.js
+    ├── index.html
+    └── main.css

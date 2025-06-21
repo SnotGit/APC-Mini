@@ -1,0 +1,32 @@
+.config-mode-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 12px 12px;
+    background: #3a3a3a;
+    border: 2px solid #555;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: capitalize;
+    font-family: inherit;
+}
+
+.mode-btn:hover {
+    background: #4a4a4a;
+    border-color: #5aa3d0;
+    color: #8bd3ff;
+}
+
+.mode-btn.active {
+    background: #3a3a3a;
+    color: #5aa3d0;
+    border-color: #5aa3d0;
+}

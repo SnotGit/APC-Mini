@@ -1,0 +1,161 @@
+# PROMPT 4 - WORKFLOW (Méthode de travail)
+
+## 📚 PHASE DE RECHERCHE PRÉLIMINAIRE
+
+### Étape 1 : Documentation Ableton Live
+- **Lire** et analyser le manuel d'Ableton Live 11
+- **Étudier** Control Surface Scripts : https://help.ableton.com/hc/en-us/articles/206240184-Creating-your-own-Control-Surface-script
+- **Extraire** toutes les propriétés des canaux MIDI
+- **Identifier** les spécifications techniques nécessaires pour l'intégration
+- **Comprendre** le système de mapping et de communication MIDI
+
+### Étape 2 : Recherche matériel Akai APC Mini MK1
+- **Documenter** exhaustivement les notes MIDI et messages CC (Control Change)
+- **Mapper** la disposition physique des pads, boutons et contrôleurs
+- **Identifier** les plages de valeurs et comportements MIDI
+- **Noter** les spécificités LED (tri-color : off, amber, green, red)
+- **Comprendre** la logique de communication USB/MIDI
+
+### Étape 3 : Recherche Novation Circuit
+- **Analyser** le fonctionnement du séquenceur intégré
+- **Documenter** le système de gammes (scales) disponibles
+- **Comprendre** l'architecture de contrôle MIDI
+- **Identifier** les patterns d'interaction utilisateur
+- **Extraire** la logique de séquençage à reproduire
+
+### Validation recherche
+- **Présenter** les informations collectées
+- **Confirmer** la compréhension technique
+- **Valider** les spécifications avant développement
+
+## 🔄 MÉTHODE DE LIVRAISON OBLIGATOIRE
+
+### Principe de livraison séquentielle
+- **UN FICHIER COMPLET** par artefact (HTML, CSS, JS)
+- **UN MESSAGE** par fichier pour permettre révision et discussion
+- **ATTENDRE VALIDATION** obligatoire avant de passer au fichier suivant
+- **PERMETTRE** modifications et ajustements sur chaque fichier proposé
+
+### Workflow de validation
+1. **Proposer** un fichier complet et fonctionnel
+2. **Expliquer** les choix techniques effectués
+3. **Attendre** retours et validation utilisateur
+4. **Ajuster** selon les demandes de modification
+5. **Confirmer** la validation avant fichier suivant
+
+### Gestion des modifications
+- **Accepter** tous les retours sans discussion
+- **Appliquer** les modifications demandées fidèlement
+- **Relivrer** le fichier corrigé pour nouvelle validation
+- **Itérer** jusqu'à satisfaction complète
+
+## ⚖️ PROCESSUS DE VALIDATION STRICT
+
+### Règles de validation absolues
+- **ACCORD PRÉALABLE OBLIGATOIRE** avant toute action sur le code
+- **DEMANDER CONFIRMATION** pour tout élément ambigu ou manquant
+- **POSER DES QUESTIONS** systématiquement plutôt que d'assumer
+- **ATTENDRE** réponse explicite avant de procéder
+
+### Types de validation requis
+**Validation architecturale :**
+- Structure générale de l'application
+- Organisation des fichiers et modules
+- Choix techniques et patterns utilisés
+
+**Validation fonctionnelle :**
+- Comportement des éléments interactifs
+- Logique métier et algorithmes
+- Intégration des fonctionnalités
+
+**Validation visuelle :**
+- Rendu final des interfaces
+- Respect des designs et croquis
+- Cohérence visuelle globale
+
+## 💻 STANDARDS DE CODE SPÉCIFIQUES
+
+### Qualité senior obligatoire
+**Lisibilité :**
+- **Noms explicites** : variables, fonctions, classes compréhensibles
+- **Structure claire** : indentation, organisation logique
+- **Code auto-documenté** : logique évidente sans commentaires excessifs
+
+**Modularité :**
+- **Séparation responsabilités** : chaque fonction/module a un rôle précis
+- **Réutilisabilité** : composants réutilisables sans duplication
+- **Extensibilité** : facilité d'ajout de nouvelles fonctionnalités
+
+**Robustesse :**
+- **Gestion d'erreurs** : try/catch appropriés, validation inputs
+- **Edge cases** : cas limites anticipés et gérés
+- **Code défensif** : vérifications nécessaires sans paranoia
+
+### Standards de logging spécifiques
+**AUTORISER UNIQUEMENT :**
+- **Erreurs importantes** : bugs, échecs de communication MIDI, problèmes critiques
+- **Assignations de pads** : logs décoratifs pour visualiser les mappings (ex: "Pad 1 → C3")
+- **Logs d'export** : confirmation de génération/sauvegarde (ex: "Configuration exportée")
+
+**INTERDIRE FORMELLEMENT :**
+- Logs informatifs superflus ("module chargé", "initialisation terminée")
+- Logs de debug oubliés ("valeur = X", "entrée dans fonction Y")
+- Logs redondants ou trop verbeux
+
+### Présentation du code
+**Standards visuels :**
+- **Séparateurs de sections** : commentaires clairs délimitant les blocs logiques
+- **INTERDICTION d'icônes** : pas de symbôles emoji ou caractères spéciaux
+- **Commentaires minimalistes** : uniquement pour la logique complexe non évidente
+- **Indentation cohérente** : 2 ou 4 espaces, consistent dans tout le projet
+
+## 🎯 WORKFLOW CLAUDE PROJECTS
+
+### Conversations optimisées
+**Phase d'analyse :**
+*"Analyse le repository et présente-moi ton extraction du design + plan de refactorisation + recherche technique"*
+
+**Phase de développement :**
+*"Crée le fichier [nom] refactorisé reproduisant l'apparence exacte avec mes nommages"*
+
+**Phase d'ajustement :**
+*"Modifie [élément] selon mes retours en conservant l'architecture visuelle"*
+
+### Progression structurée
+1. **Analyse complète** → validation
+2. **Architecture proposée** → validation
+3. **Fichier HTML principal** → validation
+4. **Fichier CSS principal** → validation
+5. **Fichier JavaScript principal** → validation
+6. **Fichiers additionnels** → validation individuelle
+7. **Tests et corrections finales**
+
+### Communication efficace
+- **Messages courts** : profiter du contexte permanent du projet
+- **Focus action** : chaque conversation a un objectif précis
+- **Feedback rapide** : validation/correction sans re-explication du contexte
+- **Itération fluide** : amélioration continue sans perte de temps
+
+## 📋 LIVRABLES WORKFLOW
+
+### Documentation de progression
+- **Checklist** des fichiers créés et validés
+- **Historique simple** des modifications demandées et appliquées
+- **État d'avancement** : quelles étapes restent à compléter
+
+### Qualité finale
+- **Code testé** : fonctionnalités vérifiées
+- **Design conforme** : apparence identique à la référence
+- **Performance optimisée** : chargement rapide, interactions fluides
+- **Documentation** : README et commentaires essentiels
+
+## ✅ OBJECTIF WORKFLOW
+
+**RÉSULTAT ATTENDU :**
+- **Développement fluide** sans blocages ni malentendus
+- **Qualité constante** grâce aux validations systématiques
+- **Respect total** des attentes utilisateur
+- **Base évolutive** pour développements futurs
+- **Collaboration efficace** maximisant la productivité
+
+**PRINCIPE :** Validation continue, communication claire, livraison séquentielle, qualité senior sans compromis.

@@ -1,0 +1,78 @@
+
+.header-container {
+    height: 100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2a2a2a;
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 20px 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== HEADER TITLE ===== */
+.header-title h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #5aa3d0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    flex: 1;
+}
+
+/* ===== HEADER NAVIGATION ===== */
+.header-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.header-btn {
+    background: #3a3a3a;
+    color: #ffffff;
+    border: 2px solid #555;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.header-btn:hover {
+    background: #4a4a4a;
+    border-color: #5aa3d0;
+    color: #8bd3ff;
+}
+
+.header-btn.active {
+    background-color: #5aa3d0;
+    border-color: #5aa3d0;
+    color: #ffffff;
+}
+
+/* ===== HEADER STATUS ===== */
+.connexion-status {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#connectionStatus {
+    padding: 10px 20px;
+    border: 2px solid #bb0000;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #e60000;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+#connectionStatus.connected {
+    background-color: #2ecc71;
+    border-color: #27ae60;
+    color: #000;
+}

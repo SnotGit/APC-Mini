@@ -1,0 +1,82 @@
+# PROMPT 1 - GÉNÉRAL (Cadre projet)
+
+## 🎯 MISSION PRINCIPALE
+Refactoriser intelligemment l'application de configuration Akai APC Mini MK1 pour Ableton Live 10/11/12 avec séquenceur type Novation Circuit. Application web 100% standalone (offline).
+
+## 🎵 CONTEXTE TECHNIQUE
+
+### Matériel cible
+- **Akai APC Mini MK1** : Contrôleur MIDI avec pads, boutons et contrôleurs
+- **Ableton Live** 10/11/12 : Station de travail audio numérique
+- **Novation Circuit** : Référence pour le système de séquenceur à intégrer
+
+### Spécifications techniques
+- **Notes MIDI et messages CC** : Mapping complet du matériel
+- **Control Surface Scripts** : Scripts Python pour l'intégration avec Ableton Live
+- **Séquenceur intégré** : Gammes (scales), patterns, logique de séquençage
+- **Disposition physique** : Layout des pads, boutons et contrôleurs
+
+### Application cible
+- **Web standalone** : Aucune dépendance externe, fonctionnement offline
+- **Multi-versions** : Compatible Ableton Live 10, 11 et 12
+- **Export configuration** : Fichiers compatibles Control Surface Scripts
+- **Interface moderne** : Standards web actuels, responsive design
+
+## 🛡️ RÈGLES FONDAMENTALES ABSOLUES
+
+### Principe de validation
+- **INTERDICTION ABSOLUE** d'inventer ou d'ajouter des fonctionnalités non demandées
+- **INTERDICTION ABSOLUE** d'halluciner des éléments non présents dans la documentation fournie
+- **OBLIGATION** de demander confirmation avant toute modification du design
+- **ACCORD PRÉALABLE OBLIGATOIRE** avant toute action sur le code
+- **RESPECT TOTAL** du design original fourni
+- Poser des questions systématiquement en cas d'ambiguïté ou d'informations manquantes
+
+### Acceptation du design tel quel
+**MÊME SI LE DESIGN SEMBLE :**
+- Défectueux ou mal structuré
+- Complexifié sans raison apparente
+- Non optimisé ou redondant
+- Avec des choix discutables
+
+**VOUS DEVEZ LE REPRODUIRE EXACTEMENT**
+
+## 🚫 INTERDICTIONS STRICTES
+
+**NE JAMAIS :**
+- Corriger ou "améliorer" le design existant de votre propre initiative
+- Réorganiser les éléments visuels sans accord explicite
+- Modifier les couleurs, espacements ou tailles sans demande
+- Changer l'architecture d'interface arbitrairement
+- Simplifier la complexité visuelle existante sans validation
+- Ajouter des éléments non présents dans les références fournies
+- Supposer le comportement d'éléments non documentés
+- Inventer du contenu pour les zones vides des croquis
+
+## 📋 OBJECTIFS DU PROJET
+
+### Fonctionnalités principales
+- **Configuration complète** du mapping MIDI Akai APC Mini MK1
+- **Séquenceur intégré** inspiré du Novation Circuit
+- **Export/Import** des configurations vers Ableton Live
+- **Interface intuitive** pour l'assignation des pads et contrôles
+- **Gestion des gammes** (scales) et modes de séquençage
+- **Prévisualisation** en temps réel des assignations
+
+### Standards de qualité attendus
+- **Code senior** : lisible, maintenable, performant
+- **Architecture moderne** : patterns actuels, bonnes pratiques
+- **Compatibilité maximale** : multi-navigateurs, responsive
+- **Stabilité** : gestion d'erreurs robuste, validation complète
+- **Documentation** : code auto-documenté, commentaires pertinents
+
+## 🎯 RÉSULTAT ATTENDU
+
+**APPLICATION FINALE :**
+- Interface reproduisant exactement le design de référence
+- Fonctionnalités complètes pour la configuration MIDI
+- Code refactorisé selon les standards senior
+- Base évolutive pour développements futurs
+- Expérience utilisateur préservée et optimisée
+
+**APPROCHE :** Respectueuse de l'existant fonctionnel, moderne dans l'exécution technique, fidèle à la vision projet.

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APC Mini MK1</title>
+
+    <!-- CSS selon structure.txt -->
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="css/header/header.css">
+    <link rel="stylesheet" href="css/content/content-zone.css">
+    <link rel="stylesheet" href="css/content/pads-content.css">
+    <link rel="stylesheet" href="css/content/sequencer-content.css">
+    <link rel="stylesheet" href="css/content/export-content.css">
+    <link rel="stylesheet" href="css/panel-control/panel-control.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/panel-config.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/pads/pads-mode.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/pads/pads-config.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/pads/groups-config.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/sequencer/sequencer-mode.css">
+    <link rel="stylesheet" href="css/panel-control/panel-config/sequencer/sequencer-config.css">
+    <link rel="stylesheet" href="css/panel-control/console/console.css">
+</head>
+
+<body>
+    <main class="app-container">
+
+        <!-- HEADER → header.js/css -->
+        <header class="header-container" id="headerContainer">
+        </header>
+
+        <div class="main-container">
+
+            <!-- CONTENT ZONE → content-zone.js/css -->
+            <div class="content-zone">
+
+                <div class="pads-content" id="padsContent"></div>
+
+                <div class="sequencer-content" id="sequencerContent"></div>
+
+                <div class="export-content" id="exportContent"></div>
+
+            </div>
+
+            <!-- PANEL CONTROL → panel-control.js/css -->
+            <aside class="panel-control" id="panelControl">
+
+                <!-- PANEL CONFIG → panel-config.js/css -->
+                <div class="panel-config" id="panelConfig">
+
+                    <div class="pads-config" id="padsConfig"></div>
+
+                    <div class="pads-mode" id="padsMode"></div>
+
+                    <div class="groups-config" id="groupsConfig"></div>
+
+                    <div class="sequencer-mode" id="sequencerMode"></div>
+
+                    <div class="sequencer-config" id="sequencerConfig"></div>
+
+                </div>
+
+                <!-- CONSOLE → console.js/css -->
+                <div class="console-container" id="consoleContainer"></div>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+    <!-- SCRIPTS selon structure.txt -->
+    <script src="js/app.js"></script>
+    <script src="js/midi/midi.js"></script>
+    <script src="js/header/header.js"></script>
+    <script src="js/content/content-zone.js"></script>
+    <script src="js/content/pads-content.js"></script>
+    <script src="js/content/sequencer-content.js"></script>
+    <script src="js/content/export-content.js"></script>
+    <script src="js/panel-control/panel-control.js"></script>
+    <script src="js/panel-control/panel-config/panel-config.js"></script>
+    <script src="js/panel-control/panel-config/pads/pads-mode.js"></script>
+    <script src="js/panel-control/panel-config/pads/pads-config.js"></script>
+    <script src="js/panel-control/panel-config/pads/groups-config.js"></script>
+    <script src="js/panel-control/panel-config/sequencer/sequencer-mode.js"></script>
+    <script src="js/panel-control/panel-config/sequencer/sequencer-config.js"></script>
+    <script src="js/panel-control/console/console.js"></script>
+
+    <script>
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof App !== 'undefined') {
+                App.init();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

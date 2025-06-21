@@ -1,0 +1,130 @@
+# PROMPT 2 - TECHNIQUE (Analyse & Refactorisation)
+
+## 🔬 APPROCHE CHIRURGICALE : ANALYSER-TRIER-AMÉLIORER
+
+### Principe fondamental
+Le code existant est une **RÉFÉRENCE GLOBALE** pour comprendre l'application, PAS du code à conserver tel quel. Votre mission est de faire une analyse intelligente pour créer une version moderne et propre.
+
+### Méthodologie obligatoire
+- **ANALYSER** le code existant pour identifier le bon vs le mauvais
+- **CONSERVER** les méthodes/logiques bien écrites et fonctionnelles
+- **REFACTORISER** les parties sur-complexifiées ou redondantes
+- **MODERNISER** ce qui est obsolète sans casser le fonctionnel
+- **REPRODUIRE EXACTEMENT** l'apparence visuelle finale
+- **REPARTIR** sur une base moderne en suivant la logique de réflexion utilisateur
+
+## 📊 PROCESSUS D'ANALYSE OBLIGATOIRE
+
+### Étape 1 : Inventaire complet
+- **Lister** tous les fichiers du repository (HTML, CSS, JS, assets)
+- **Identifier** les points d'entrée et fichiers principaux
+- **Cartographier** la structure globale de l'application
+- **Répertorier** les dépendances et modules utilisés
+
+### Étape 2 : Analyse fonctionnelle
+- **Extraire** toutes les fonctionnalités existantes
+- **Identifier** les algorithmes et logiques métier
+- **Noter** les patterns d'interaction et comportements
+- **Documenter** les structures de données utilisées
+
+### Étape 3 : Tri qualité du code
+**À CONSERVER (bonnes pratiques détectées) :**
+- ✅ Méthodes bien écrites et lisibles
+- ✅ Logiques métier pertinentes et efficaces
+- ✅ Algorithmes optimisés qui fonctionnent
+- ✅ Structures de données appropriées
+- ✅ Patterns corrects et réutilisables
+- ✅ Gestion d'erreurs robuste
+
+**À REFACTORISER (problèmes identifiés) :**
+- ❌ Structure HTML sur-complexifiée (ex: 14 div pour 2 boutons)
+- ❌ CSS redondant ou mal organisé
+- ❌ JavaScript dupliqué ou spaghetti
+- ❌ Nommages incohérents ou obscurs
+- ❌ Patterns obsolètes ou anti-patterns
+- ❌ Code mort ou commenté inutilement
+
+### Étape 4 : Documentation du plan
+- **Justifier** chaque choix de conservation vs refactorisation
+- **Présenter** l'architecture proposée
+- **Expliquer** les améliorations techniques envisagées
+- **Attendre** validation avant développement
+
+## ⚙️ STANDARDS DE REFACTORISATION
+
+## 🎯 CONTRAINTE SIMPLICITÉ ABSOLUE
+
+### Contexte matériel
+L'Akai APC Mini MK1 est un contrôleur MIDI **très simple et basique** :
+- **64 pads (8x8)** avec tri-color LEDs 
+- **9 faders** (8 tracks + master)
+- **Quelques boutons** : Scene Launch, Clip Stop, Shift, navigation
+- **USB powered**, plug & play avec Ableton Live
+
+### Principe de simplicité
+**C'est simple comme une télécommande de TV** → l'app de configuration doit rester **proportionnellement simple**.
+
+**INTERDICTION FORMELLE :**
+- Sur-ingénierie ou complexification inutile
+- Patterns avancés non justifiés pour cette simplicité
+- Architecture over-engineered pour des fonctions basiques
+- Abstractions excessives pour du code straightforward
+
+### Standards adaptés à la simplicité
+**HTML/CSS/JS basique et efficace :**
+- Pas de frameworks complexes pour des interactions simples
+- Pas de build tools ou compilation pour une petite app
+- Code vanilla direct et compréhensible 
+- Structure plate sans hiérarchies inutiles
+
+## 🔧 AMÉLIORATIONS AUTORISÉES
+
+### Structure et organisation
+- **Simplifier** la structure HTML over-engineered
+- **Optimiser** le CSS redondant ou mal structuré
+- **Refactoriser** le JavaScript dupliqué ou mal organisé
+- **Moderniser** les patterns anciens (utiliser Grid, Flexbox, modules ES6)
+- **Réorganiser** l'architecture des fichiers pour plus de clarté
+
+### Qualité technique
+- **Corriger** les bugs techniques sans impact fonctionnel
+- **Améliorer** les performances sans changer l'expérience utilisateur
+- **Optimiser** le chargement et la réactivité
+- **Standardiser** le code selon les bonnes pratiques actuelles
+
+### Code maintenance
+- **Éliminer** les duplications de code
+- **Clarifier** les noms de variables et fonctions
+- **Documenter** la logique complexe uniquement
+- **Structurer** en modules logiques et réutilisables
+
+## 🎯 SYNTHÈSE REQUISE
+
+### Combinaison intelligente
+- **Meilleur du code existant** : conserver ce qui fonctionne bien
+- **Logique de réflexion utilisateur** : respecter la vision architecturale
+- **Standards modernes** : appliquer les bonnes pratiques actuelles
+- **Base évolutive** : créer une fondation propre pour le futur
+
+### Validation continue
+- **Présenter** l'analyse complète avant développement
+- **Justifier** chaque décision technique
+- **Demander** confirmation pour les choix ambigus
+- **Attendre** accord explicite avant de coder
+
+## 📋 LIVRABLES D'ANALYSE
+
+### Document d'analyse requis
+1. **Inventaire** : structure existante et fichiers
+2. **Fonctionnalités** : mapping complet des features
+3. **Qualité** : tri détaillé bon/mauvais code
+4. **Plan** : architecture refactorisée proposée
+5. **Justifications** : explications des choix techniques
+
+### Validation obligatoire
+- Présentation complète de l'analyse
+- Accord sur le plan de refactorisation
+- Validation de l'architecture proposée
+- Confirmation avant début du développement
+
+**OBJECTIF :** Créer une base de code moderne, maintenable et performante tout en préservant l'exactitude fonctionnelle et visuelle de l'application existante.
