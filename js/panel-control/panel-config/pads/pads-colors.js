@@ -4,6 +4,8 @@ const PadsColors = {
     currentMode: 'pads', // 'pads' ou 'groups'
     selectedPad: null,
     selectedGroup: null,
+    colorsEnabled: true,
+    isInitialized: false,
 
     // ===== CRÉATION TEMPLATE =====
     create() {
@@ -24,7 +26,12 @@ const PadsColors = {
 
     // ===== INITIALISATION =====
     init() {
+        if (this.isInitialized) return;
+        
         this.setupEventListeners();
+        this.updateColorsState();
+        
+        this.isInitialized = true;
     },
 
     // ===== ÉVÉNEMENTS =====
@@ -38,36 +45,54 @@ const PadsColors = {
             }
         });
 
-        // Écouter changement de mode
-        window.addEventListener('config-mode-changed', (event) => {
+        // Écouter changement de mode (pads/groups)
+        window.addEventListener('mode-changed', (event) => {
             const { mode } = event.detail;
             this.currentMode = mode;
+            this.resetSelections();
         });
 
-        // Écouter sélection pad
+        // Écouter sélection pad depuis pads-mode
         window.addEventListener('pad-selected', (event) => {
             const { padNumber } = event.detail;
             this.selectedPad = padNumber;
             this.selectedGroup = null; // Reset groupe
+            this.updateColorsState();
         });
 
-        // Écouter sélection groupe (depuis groups-mode)
+        // Écouter sélection groupe depuis groups-mode
         window.addEventListener('group-selected', (event) => {
-            const { groupId } = event.detail;
+            const { groupId, sequencerEnabled } = event.detail;
             this.selectedGroup = groupId;
             this.selectedPad = null; // Reset pad
+            this.colorsEnabled = !sequencerEnabled; // Couleurs interdites si séquenceur actif
+            this.updateColorsState();
         });
 
-        // Écouter highlight groupe
-        window.addEventListener('highlight-group', (event) => {
-            // Quand un groupe est highlighted, on peut l'assigner
-            this.selectedGroup = event.detail.groupId || this.getGroupFromPads(event.detail.groupPads);
-            this.selectedPad = null;
+        // Écouter autorisation couleurs depuis groups-mode
+        window.addEventListener('sequencer-colors-disabled', () => {
+            this.colorsEnabled = false;
+            this.updateColorsState();
+        });
+
+        window.addEventListener('sequencer-colors-enabled', () => {
+            this.colorsEnabled = true;
+            this.updateColorsState();
+        });
+
+        // Écouter déselection
+        window.addEventListener('clear-selection', () => {
+            this.resetSelections();
         });
     },
 
     // ===== GESTION COULEURS =====
     handleColorClick(colorName) {
+        // Vérifier si couleurs autorisées
+        if (!this.colorsEnabled) {
+            return; // Couleurs interdites en mode séquenceur
+        }
+
         const color = colorName === 'clear' ? null : colorName;
 
         if (this.currentMode === 'pads') {
@@ -79,66 +104,96 @@ const PadsColors = {
 
     applyPadColor(color) {
         if (!this.selectedPad) {
-            // Pas de pad sélectionné
-            return;
+            return; // Pas de pad sélectionné
         }
 
-        // Envoyer event vers pads-content
+        // Envoyer vers pads-content
         window.dispatchEvent(new CustomEvent('apply-pad-color', {
             detail: { 
                 padNumber: this.selectedPad, 
                 color 
             }
         }));
+
+        // Reset sélection après assignation
+        this.selectedPad = null;
+        this.updateColorsState();
     },
 
     applyGroupColor(color) {
         if (!this.selectedGroup) {
-            // Pas de groupe sélectionné
-            return;
+            return; // Pas de groupe sélectionné
         }
 
-        // Obtenir les pads du groupe
-        const groupPads = this.getGroupPads(this.selectedGroup);
-        if (!groupPads) return;
-
-        // Envoyer event vers groups-mode
-        window.dispatchEvent(new CustomEvent('apply-group-color-request', {
+        // Demander à groups-mode d'appliquer la couleur (vérification autorisations)
+        window.dispatchEvent(new CustomEvent('group-color-request', {
             detail: { 
                 groupId: this.selectedGroup,
-                groupPads,
                 color 
             }
         }));
+
+        // Garder sélection groupe pour assignations multiples
+    },
+
+    // ===== ÉTATS VISUELS =====
+    updateColorsState() {
+        // Mettre à jour apparence boutons couleurs
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            // Désactiver si couleurs interdites
+            btn.classList.toggle('disabled', !this.colorsEnabled);
+            btn.disabled = !this.colorsEnabled;
+
+            // Indication visuelle selon sélection
+            const hasSelection = this.selectedPad || this.selectedGroup;
+            btn.classList.toggle('ready', this.colorsEnabled && hasSelection);
+        });
+
+        // Mettre à jour curseur selon état
+        const colorSection = document.querySelector('.color-section');
+        if (colorSection) {
+            colorSection.classList.toggle('colors-disabled', !this.colorsEnabled);
+            colorSection.classList.toggle('has-selection', this.selectedPad || this.selectedGroup);
+        }
+    },
+
+    resetSelections() {
+        this.selectedPad = null;
+        this.selectedGroup = null;
+        this.updateColorsState();
+    },
+
+    // ===== API PUBLIQUE =====
+    getSelectedPad() {
+        return this.selectedPad;
+    },
+
+    getSelectedGroup() {
+        return this.selectedGroup;
+    },
+
+    areColorsEnabled() {
+        return this.colorsEnabled;
+    },
+
+    getCurrentMode() {
+        return this.currentMode;
     },
 
     // ===== UTILITAIRES =====
-    getGroupPads(groupId) {
-        const groups = {
-            1: [1,2,3,4,9,10,11,12,17,18,19,20,25,26,27,28],
-            2: [33,34,35,36,41,42,43,44,49,50,51,52,57,58,59,60],
-            3: [37,38,39,40,45,46,47,48,53,54,55,56,61,62,63,64],
-            4: [5,6,7,8,13,14,15,16,21,22,23,24,29,30,31,32]
+    setColorsEnabled(enabled) {
+        this.colorsEnabled = enabled;
+        this.updateColorsState();
+    },
+
+    // ===== DEBUGGING =====
+    getState() {
+        return {
+            currentMode: this.currentMode,
+            selectedPad: this.selectedPad,
+            selectedGroup: this.selectedGroup,
+            colorsEnabled: this.colorsEnabled
         };
-        return groups[groupId] || null;
-    },
-
-    getGroupFromPads(groupPads) {
-        // Identifier le groupe selon les pads
-        if (!groupPads || !groupPads.length) return null;
-        
-        if (groupPads.includes(1)) return 1;
-        if (groupPads.includes(33)) return 2;
-        if (groupPads.includes(37)) return 3;
-        if (groupPads.includes(5)) return 4;
-        
-        return null;
-    },
-
-    // ===== ÉTAT =====
-    reset() {
-        this.selectedPad = null;
-        this.selectedGroup = null;
     }
 };
 

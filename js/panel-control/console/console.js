@@ -1,82 +1,97 @@
 const Console = {
 
-    // ===== ÉTAT =====
+    // ===== ÉTAT CONSOLE =====
     isInitialized: false,
     logs: [],
     maxLogs: 1000,
-
-    // ===== CRÉATION TEMPLATE =====
-    create() {
-        return `
-            <div class="console-container">
-                <div class="console-header">
-                    <div class="console-title">Console</div>
-                    <div class="connection-status" id="connectionStatus"></div>
-                    <button class="console-clear" id="consoleClearBtn">Clear</button>
-                </div>
-
-                <div class="console-content" id="consoleContent">
-                    <!-- Logs ici -->
-                </div>
-            </div>
-        `;
+    autoScroll: true,
+    filters: {
+        system: true,
+        info: true,
+        success: true,
+        warning: true,
+        error: true
     },
 
     // ===== INITIALISATION =====
     init() {
         if (this.isInitialized) return;
 
-        this.createConsole();
+        this.createConsoleInterface();
         this.setupEventListeners();
         
         this.isInitialized = true;
+        this.addLog('Console initialisée', 'system');
     },
 
-    createConsole() {
+    createConsoleInterface() {
         const consoleContainer = document.getElementById('consoleContainer');
-        if (consoleContainer) {
-            consoleContainer.innerHTML = this.create();
-        }
+        if (!consoleContainer) return;
+
+        consoleContainer.innerHTML = this.createTemplate();
+    },
+
+    createTemplate() {
+        return `
+            <div class="console-container">
+                <div class="console-header">
+                    <div class="console-title">Console</div>
+                    <div class="console-controls">
+                        <div class="connection-status" id="connectionStatus">Déconnecté</div>
+                        <button class="console-clear" id="consoleClearBtn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="console-content" id="consoleContent">
+                    <!-- Logs dynamiques -->
+                </div>
+            </div>
+        `;
     },
 
     // ===== ÉVÉNEMENTS =====
     setupEventListeners() {
-        // Bouton clear console
+        // Bouton clear
         document.addEventListener('click', (e) => {
             if (e.target.id === 'consoleClearBtn') {
                 this.clearConsole();
             }
         });
 
-        // Écouter logs depuis app
+        // Écouter logs depuis app et modules
         window.addEventListener('console-log', (event) => {
             const { message, type } = event.detail;
             this.addLog(message, type);
         });
 
-        // Écouter événements assignation pads
+        // Écouter statut MIDI depuis midi.js
+        window.addEventListener('midi-status-changed', (event) => {
+            const { connected, message } = event.detail;
+            this.updateConnectionStatus(connected, message);
+            this.addLog(message, connected ? 'success' : 'error');
+        });
+
+        // Écouter assignations depuis modules
         window.addEventListener('pad-assigned', (event) => {
             const { padNumber, color } = event.detail;
             this.addLog(`Pad ${padNumber} → ${color}`, 'success');
         });
 
-        // Écouter événements assignation groupes  
         window.addEventListener('group-assigned', (event) => {
             const { groupId, color } = event.detail;
             this.addLog(`Groupe ${groupId} → ${color}`, 'success');
         });
 
-        // Écouter activation séquenceur
+        // Écouter séquenceur
         window.addEventListener('sequencer-activated', (event) => {
             const { groupId, activated, steps } = event.detail;
             if (activated) {
                 this.addLog(`Séquenceur Groupe ${groupId}: ${steps} steps`, 'info');
             } else {
-                this.addLog(`Séquenceur désactivé`, 'info');
+                this.addLog('Séquenceur désactivé', 'info');
             }
         });
 
-        // Écouter changement steps séquenceur
         window.addEventListener('sequencer-steps-changed', (event) => {
             const { groupId, steps } = event.detail;
             this.addLog(`Séquenceur Groupe ${groupId}: ${steps} steps`, 'info');
@@ -84,10 +99,6 @@ const Console = {
     },
 
     // ===== SYSTÈME DE LOGS =====
-    log(message, type = 'info') {
-        this.addLog(message, type);
-    },
-
     addLog(message, type = 'info') {
         const timestamp = this.getTimestamp();
         const logEntry = {
@@ -113,24 +124,23 @@ const Console = {
         const consoleContent = document.getElementById('consoleContent');
         if (!consoleContent) return;
 
+        // Vérifier filtre
+        if (!this.filters[logEntry.type]) return;
+
         const logElement = document.createElement('div');
         logElement.className = `log-entry ${logEntry.type}`;
+        logElement.dataset.logId = logEntry.id;
         logElement.innerHTML = `
             <span class="timestamp">${logEntry.timestamp}</span>
-            ${logEntry.message}
+            <span class="log-message">${this.escapeHtml(logEntry.message)}</span>
         `;
 
         // Insérer en bas
         consoleContent.appendChild(logElement);
 
-        // Auto-scroll si nécessaire
-        this.autoScroll();
-    },
-
-    autoScroll() {
-        const consoleContent = document.getElementById('consoleContent');
-        if (consoleContent) {
-            consoleContent.scrollTop = consoleContent.scrollHeight;
+        // Auto-scroll si activé
+        if (this.autoScroll) {
+            this.scrollToBottom();
         }
     },
 
@@ -140,35 +150,35 @@ const Console = {
         if (consoleContent) {
             consoleContent.innerHTML = '';
         }
+        this.addLog('Console cleared', 'system');
     },
 
-    // ===== STATUS CONNEXION MIDI =====
-    updateConnectionStatus(connected) {
+    scrollToBottom() {
+        const consoleContent = document.getElementById('consoleContent');
+        if (consoleContent) {
+            consoleContent.scrollTop = consoleContent.scrollHeight;
+        }
+    },
+
+    // ===== STATUT CONNEXION =====
+    updateConnectionStatus(connected, message = null) {
         const statusElement = document.getElementById('connectionStatus');
         if (!statusElement) return;
 
         if (connected) {
             statusElement.textContent = 'Connecté';
             statusElement.classList.add('connected');
-            this.addLog('APC Mini connecté', 'success');
         } else {
             statusElement.textContent = 'Déconnecté';
             statusElement.classList.remove('connected');
-            this.addLog('APC Mini déconnecté', 'error');
         }
     },
 
-    // ===== UTILITAIRES =====
-    getTimestamp() {
-        const now = new Date();
-        return now.toLocaleTimeString('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+    // ===== MÉTHODES PUBLIQUES =====
+    log(message, type = 'info') {
+        this.addLog(message, type);
     },
 
-    // ===== API PUBLIQUE =====
     system(message) {
         this.addLog(message, 'system');
     },
@@ -187,6 +197,95 @@ const Console = {
 
     error(message) {
         this.addLog(message, 'error');
+    },
+
+    // ===== FILTRES =====
+    setFilter(type, enabled) {
+        if (this.filters.hasOwnProperty(type)) {
+            this.filters[type] = enabled;
+            this.refreshDisplay();
+        }
+    },
+
+    refreshDisplay() {
+        const consoleContent = document.getElementById('consoleContent');
+        if (!consoleContent) return;
+
+        // Nettoyer affichage
+        consoleContent.innerHTML = '';
+
+        // Réafficher logs filtrés
+        this.logs.forEach(logEntry => {
+            if (this.filters[logEntry.type]) {
+                this.displayLog(logEntry);
+            }
+        });
+    },
+
+    // ===== CONFIGURATION =====
+    setAutoScroll(enabled) {
+        this.autoScroll = enabled;
+    },
+
+    setMaxLogs(max) {
+        this.maxLogs = Math.max(100, Math.min(5000, max));
+        
+        // Tronquer si nécessaire
+        if (this.logs.length > this.maxLogs) {
+            this.logs = this.logs.slice(-this.maxLogs);
+            this.refreshDisplay();
+        }
+    },
+
+    // ===== EXPORT/IMPORT =====
+    exportLogs() {
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            logs: this.logs,
+            filters: this.filters
+        };
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: 'application/json'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `console-logs-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        this.addLog('Logs exportés', 'system');
+    },
+
+    // ===== GETTERS =====
+    getLogCount() {
+        return this.logs.length;
+    },
+
+    getLogsByType(type) {
+        return this.logs.filter(log => log.type === type);
+    },
+
+    getRecentLogs(count = 10) {
+        return this.logs.slice(-count);
+    },
+
+    // ===== UTILITAIRES =====
+    getTimestamp() {
+        const now = new Date();
+        return now.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    },
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 };
 

@@ -1,0 +1,117 @@
+INFORMATIONS :   
+
+🎯 CETTE APP = 3 VUES DISTINCTES
+📱 VUE PADS (pads-content)
+
+Assignations couleurs uniquement
+Toggle séquenceur ON/OFF
+Highlights blancs quand toggle ON
+PAS de programmation séquence
+
+🎹 VUE SEQUENCER (sequencer-content)
+
+Programmation steps séquences
+Play/stop, mode, scales, reverse
+Grille séquenceur interactive
+
+📤 VUE EXPORT (export-content)
+
+Export configurations
+
+🔧 WORKFLOW PADS-CONTENT CORRIGÉ
+👁️ CE QUE VOIT L'UTILISATEUR :
+
+Grille 8x8 pads pour assignations couleurs
+Interface groups/pads mode
+Toggle séquenceur (visual feedback)
+
+🖱️ ACTIONS UTILISATEUR :
+
+Assignation couleurs (pads individuels ou groupes)
+Toggle séquenceur ON → highlights blancs (indication zone séquenceur)
+Switch vue → aller vers sequencer-content pour programmer
+
+Pads-content = CONFIGURATION, pas exécution !
+
+
+GROUPS-MODE 
+
+🎯 INTERFACE
+
+4 boutons groupes : 1, 2, 3, 4 (toujours visibles)
+Toggle séquenceur : injecté par sequencer-mode
+Switch 16/32 steps : injecté par sequencer-mode
+
+🎨 SÉLECTION GROUPES
+
+Clic groupe → sélection groupe
+
+🎨 ASSIGNATION COULEUR GROUPE
+
+Clic colors → apply-group-color à TOUS les pads du groupe
+Résultat → fond ET bordure colorés (même CSS que pads-mode)
+Permanent → sauvegardé en config
+
+🎹 TOGGLE SÉQUENCEUR
+
+Visible : seulement sur groupes 1 et 2
+Invisible : sur groupes 3 et 4 (pas assez de pads)
+
+🔄 ÉTATS TOGGLE
+
+Toggle OFF : couleurs accessibles (mode assignation normal)
+Toggle ON : couleurs inaccessibles + highlights blancs permanents
+
+⚙️ SWITCH 16/32 STEPS
+
+16 steps : groupes 1 ou 2 → highlight 16 pads
+32 steps : groupe 5 automatique → highlight 32 pads
+
+⚡ HIGHLIGHTS SÉQUENCEUR
+
+Toggle ON → highlights blancs permanents (bordure + box-shadow)
+Toggle OFF → highlights disparaissent
+Cohabitation : toggle highlights désactive apply-group-color
+
+📡 COMMUNICATION
+
+Vers pads-content : color ou highlights pads
+Vers pads-colors : autorisation/interdiction couleurs
+Depuis sequencer-mode : états toggle + switch
+
+COMPLEMENT D'INFORMATIONS: 
+ 
+🎯 RÔLES PRÉCIS
+pads-mode = Interface assignation pad individuel
+
+Envoie apply-pad-color → pads-content
+
+groups-mode = Interface assignation groupe + séquenceur
+
+Envoie apply-group-color → pads-content
+Envoie config séquenceur → pads-content
+
+pads-content = GESTIONNAIRE CENTRAL
+
+Reçoit assignations de pads-mode ET groups-mode
+Affiche couleurs + highlights
+Transmet config séquenceur → sequencer-content
+
+sequencer-content = Exécuteur séquence
+
+Reçoit configuration de pads-content
+Joue séquences selon pads assignés
+
+🎹 LOGIQUE
+pads-content = "Hub central" qui :
+
+Centralise toutes les assignations
+Dispatch vers sequencer-content
+Évite communication croisée complexe
+
+🔗FLOW COMMUNICATION LOGIQUE :
+pads-mode → pads-colors → pads-content
+groups-mode → pads-colors → pads-content  
+groups-mode → pads-content (config séquenceur)
+sequencer-mode → groups-mode (toggle/switch)
+pads-content → sequencer-content

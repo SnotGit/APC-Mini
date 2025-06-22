@@ -1,120 +1,81 @@
 const App = {
 
-    // ===== ÉTAT =====
+    // ===== ÉTAT ORCHESTRATEUR =====
     isInitialized: false,
     currentView: 'pads',
+    modules: {},
     config: {},
 
-    // ===== INITIALISATION =====
+    // ===== INITIALISATION GLOBALE =====
     async init() {
         if (this.isInitialized) return;
 
         try {
-            // 1. Console en premier
-            this.initConsole();
+            // 1. Console en premier (logging system)
+            this.initModule('Console');
             
-            // 2. Log initial après que Console soit initialisé
-            setTimeout(() => {
-            }, 100);
-
-            // 3. Configuration
+            // 2. Configuration system
             this.loadConfig();
 
-            // 4. Header
-            this.initHeader();
-
-            // 5. MIDI
+            // 3. Modules core
+            this.initModule('Header');
             await this.initMIDI();
 
-            // 6. View Manager
-            this.initViewManager();
+            // 4. Architecture vues
+            this.initViewArchitecture();
 
-            // 7. Événements globaux
-            this.setupGlobalEvents();
+            // 5. Communication inter-modules
+            this.setupGlobalCommunication();
 
-            // 8. Vue par défaut
+            // 6. Vue par défaut
             this.switchToView('pads');
 
             this.isInitialized = true;
+            this.notifyLog('Application initialisée', 'system');
 
         } catch (error) {
-            console.error('❌ Erreur init:', error);
-            this.log(`Erreur initialisation: ${error.message}`, 'error');
+            this.handleInitError(error);
         }
     },
 
-    // ===== CONSOLE SYSTEM =====
-    initConsole() {
-        if (window.Console) {
-            window.Console.init();
-        }
-    },
-
-    log(message, type = 'info') {
-        if (window.Console && window.Console.log) {
-            window.Console.log(message, type);
+    // ===== GESTION MODULES =====
+    initModule(moduleName) {
+        if (window[moduleName] && window[moduleName].init) {
+            try {
+                window[moduleName].init();
+                this.modules[moduleName] = window[moduleName];
+                return true;
+            } catch (error) {
+                this.notifyLog(`Erreur init ${moduleName}: ${error.message}`, 'error');
+                return false;
+            }
         } else {
-            console.log(`[${type.toUpperCase()}] ${message}`);
+            this.notifyLog(`Module ${moduleName} non trouvé`, 'warning');
+            return false;
         }
     },
 
-    // ===== HEADER =====
-    initHeader() {
-        if (window.Header) {
-            window.Header.init();
-        } else {
-            this.log('Header module non trouvé', 'error');
-        }
-    },
-
-    // ===== MIDI MANAGER =====
     async initMIDI() {
         if (!window.MIDI) {
-            this.log('Connecter Apc Mini MK1', 'error');
-            return;
+            this.notifyLog('Module MIDI non trouvé', 'error');
+            return false;
         }
 
-        // Vérifier support Web MIDI
+        // Vérifier support Web MIDI API
         if (!window.MIDI.init()) {
-            this.log('Web MIDI API non supportée', 'error');
-            return;
+            return false;
         }
 
-        // Tentative connexion
+        // Tentative connexion APC Mini
         const connected = await window.MIDI.connect();
+        this.modules.MIDI = window.MIDI;
         
-        if (connected) {
-            if (window.Console) {
-                window.Console.updateConnectionStatus(true);
-            }
-        } else {
-            if (window.Console) {
-                window.Console.updateConnectionStatus(false);
-            }
-        }
-
-        // Surveillance reconnexion
-        this.setupMIDIMonitoring();
+        return connected;
     },
 
-    setupMIDIMonitoring() {
-        // Vérifier connexion périodiquement
-        setInterval(() => {
-            if (window.MIDI && window.Console) {
-                const isConnected = window.MIDI.isConnected();
-                const currentStatus = document.getElementById('connectionStatus');
-                const wasConnected = currentStatus ? currentStatus.classList.contains('connected') : false;
-                
-                if (isConnected !== wasConnected) {
-                    window.Console.updateConnectionStatus(isConnected);
-                }
-            }
-        }, 2000);
-    },
-
-    // ===== VIEW MANAGER =====
-    initViewManager() {
-        // Initialiser content-zone
+    // ===== ARCHITECTURE VUES =====
+    initViewArchitecture() {
+        // Préparer content-zone
         const contentZone = document.querySelector('.content-zone');
         if (contentZone) {
             contentZone.innerHTML = `
@@ -124,16 +85,18 @@ const App = {
             `;
         }
 
-        // Initialiser panel-config
+        // Préparer panel-config
         const panelConfig = document.querySelector('.panel-config');
         if (panelConfig) {
             panelConfig.innerHTML = `<div class="config-content" id="configContent"></div>`;
         }
     },
 
+    // ===== GESTIONNAIRE VUES =====
     switchToView(viewId) {
+        if (this.currentView === viewId) return;
+        
         this.currentView = viewId;
-        console.log(`🔄 Switch vers vue: ${viewId}`);
 
         // Masquer toutes les vues
         document.querySelectorAll('.view-panel').forEach(panel => {
@@ -146,111 +109,150 @@ const App = {
             activeView.classList.add('active');
         }
 
-        // Charger contenu selon vue
+        // Charger contenu et config
         this.loadViewContent(viewId);
         this.loadViewConfig(viewId);
+        
+        this.notifyLog(`Vue switched: ${viewId}`, 'info');
     },
 
     loadViewContent(viewId) {
         const viewContainer = document.getElementById(`${viewId}View`);
         if (!viewContainer) return;
 
+        let contentModule = null;
+        let moduleInitialized = false;
+
         switch (viewId) {
             case 'pads':
-                if (window.PadsContent) {
-                    console.log('📱 Loading PadsContent...');
-                    viewContainer.innerHTML = window.PadsContent.create();
-                    // Initialiser PadsContent après insertion DOM
-                    if (window.PadsContent.init) {
-                        window.PadsContent.init();
-                        console.log('✅ PadsContent initialisé');
-                    }
-                } else {
-                    console.error('❌ PadsContent module non trouvé');
-                }
+                contentModule = window.PadsContent;
                 break;
-
             case 'sequencer':
-                if (window.SequencerContent) {
-                    viewContainer.innerHTML = window.SequencerContent.create();
-                }
+                contentModule = window.SequencerContent;
                 break;
-
             case 'export':
-                if (window.ExportContent) {
-                    viewContainer.innerHTML = window.ExportContent.create();
-                }
+                contentModule = window.ExportContent;
                 break;
         }
+
+        if (contentModule && contentModule.create) {
+            try {
+                viewContainer.innerHTML = contentModule.create();
+                
+                // Initialiser module après insertion DOM
+                if (contentModule.init) {
+                    contentModule.init();
+                    moduleInitialized = true;
+                }
+            } catch (error) {
+                this.notifyLog(`Erreur chargement ${viewId}Content: ${error.message}`, 'error');
+                viewContainer.innerHTML = `<div class="error-placeholder">Module ${viewId} indisponible</div>`;
+            }
+        } else {
+            this.notifyLog(`Module ${viewId}Content non trouvé`, 'warning');
+            viewContainer.innerHTML = `<div class="placeholder">Module ${viewId} en développement</div>`;
+        }
+
+        return moduleInitialized;
     },
 
     loadViewConfig(viewId) {
         const configContent = document.getElementById('configContent');
         if (!configContent) return;
 
+        let configModule = null;
+
         switch (viewId) {
             case 'pads':
-                if (window.PadsConfig) {
-                    console.log('⚙️ Loading PadsConfig...');
-                    configContent.innerHTML = window.PadsConfig.create();
-                    // Initialiser PadsConfig après insertion DOM
-                    if (window.PadsConfig.init) {
-                        window.PadsConfig.init();
-                        console.log('✅ PadsConfig initialisé');
-                    }
-                } else {
-                    console.error('❌ PadsConfig module non trouvé');
-                }
+                configModule = window.PadsConfig;
                 break;
-
             case 'sequencer':
-                if (window.SequencerConfig) {
-                    configContent.innerHTML = window.SequencerConfig.create();
-                }
+                configModule = window.SequencerConfig;
                 break;
-
             case 'export':
-                // Panel config reste vide pour export
+                // Export n'a pas de config panel
                 configContent.innerHTML = '';
-                break;
+                return;
+        }
+
+        if (configModule && configModule.create) {
+            try {
+                configContent.innerHTML = configModule.create();
+                
+                // Initialiser config après insertion DOM
+                if (configModule.init) {
+                    configModule.init();
+                }
+            } catch (error) {
+                this.notifyLog(`Erreur config ${viewId}: ${error.message}`, 'error');
+                configContent.innerHTML = '';
+            }
+        } else {
+            configContent.innerHTML = '';
         }
     },
 
-    // ===== ÉVÉNEMENTS GLOBAUX =====
-    setupGlobalEvents() {
-        // Écouter changements de vue du header
+    // ===== COMMUNICATION GLOBALE =====
+    setupGlobalCommunication() {
+        // Écouter changements de vue depuis header
         window.addEventListener('view-changed', (event) => {
             const { view } = event.detail;
             this.switchToView(view);
         });
 
-        // Écouter messages MIDI
+        // Écouter statut MIDI
+        window.addEventListener('midi-connection-changed', (event) => {
+            const { connected } = event.detail;
+            this.handleMIDIConnectionChange(connected);
+        });
+
+        // Écouter messages MIDI pour transmission
         window.addEventListener('midi-message', (event) => {
-            const { status, note, velocity } = event.detail;
-            // Transmettre aux modules concernés
-            this.handleMIDIMessage(status, note, velocity);
+            this.handleMIDIMessage(event.detail);
         });
 
-        // Écouter assignations pour logs
-        window.addEventListener('pad-assigned', (event) => {
-            const { padNumber, color } = event.detail;
-            this.log(`Pad ${padNumber} → ${color}`, 'success');
-        });
-
-        window.addEventListener('group-assigned', (event) => {
-            const { groupId, color } = event.detail;
-            this.log(`Groupe ${groupId} → ${color}`, 'success');
+        // Écouter événements configuration
+        window.addEventListener('config-updated', (event) => {
+            this.handleConfigUpdate(event.detail);
         });
     },
 
-    handleMIDIMessage(status, note, velocity) {
-        // Transmettre aux modules actifs
+    handleMIDIConnectionChange(connected) {
+        // Notifier modules concernés
         if (this.currentView === 'pads' && window.PadsContent) {
-            // window.PadsContent.handleMIDI(status, note, velocity);
+            // PadsContent peut réagir au changement connexion
+        }
+        
+        if (this.currentView === 'sequencer' && window.SequencerContent) {
+            // SequencerContent peut réagir au changement connexion
         }
     },
 
-    // ===== CONFIGURATION SYSTEM =====
+    handleMIDIMessage(midiData) {
+        const { status, note, velocity } = midiData;
+        
+        // Transmettre aux modules actifs selon la vue
+        switch (this.currentView) {
+            case 'pads':
+                if (window.PadsContent && window.PadsContent.handleMIDI) {
+                    window.PadsContent.handleMIDI(status, note, velocity);
+                }
+                break;
+                
+            case 'sequencer':
+                if (window.SequencerContent && window.SequencerContent.handleMIDI) {
+                    window.SequencerContent.handleMIDI(status, note, velocity);
+                }
+                break;
+        }
+    },
+
+    handleConfigUpdate(configData) {
+        const { section, data } = configData;
+        this.updateConfig(section, data);
+    },
+
+    // ===== SYSTÈME CONFIGURATION =====
     loadConfig() {
         try {
             const savedConfig = localStorage.getItem('apc-mini-config');
@@ -261,7 +263,7 @@ const App = {
                 this.saveConfig();
             }
         } catch (error) {
-            this.log('Erreur chargement config', 'error');
+            this.notifyLog('Erreur chargement config, utilisation défauts', 'warning');
             this.config = this.getDefaultConfig();
         }
     },
@@ -270,14 +272,14 @@ const App = {
         try {
             localStorage.setItem('apc-mini-config', JSON.stringify(this.config));
         } catch (error) {
-            this.log('Erreur sauvegarde config', 'error');
+            this.notifyLog('Erreur sauvegarde config', 'error');
         }
     },
 
     getDefaultConfig() {
         return {
             pads: {
-                padConfigs: {},
+                padColors: {},
                 sequencerEnabled: false
             },
             sequencer: {
@@ -304,48 +306,64 @@ const App = {
         return this.config[section] || null;
     },
 
-    // ===== EXPORT SYSTEM =====
+    // ===== EXPORT SYSTÈME =====
     exportConfig() {
+        if (!window.ExportContent || !window.ExportContent.export) {
+            this.notifyLog('Module Export non disponible', 'error');
+            return false;
+        }
+        
         try {
-            const exportData = {
-                timestamp: new Date().toISOString(),
-                config: this.config,
-                version: '1.0.0'
-            };
-
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-                type: 'application/json'
-            });
-
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `apc-mini-config-${Date.now()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-
-            this.log('Configuration exportée', 'success');
-            return true;
-
+            return window.ExportContent.export(this.config);
         } catch (error) {
-            this.log('Erreur export config', 'error');
+            this.notifyLog(`Erreur export: ${error.message}`, 'error');
             return false;
         }
     },
 
-    // ===== UTILITAIRES =====
+    // ===== GESTION ERREURS =====
+    handleInitError(error) {
+        this.notifyLog(`Erreur critique initialisation: ${error.message}`, 'error');
+        
+        // Mode dégradé
+        document.body.innerHTML = `
+            <div class="error-container">
+                <h1>Erreur Application</h1>
+                <p>Impossible d'initialiser l'application.</p>
+                <p>Erreur: ${error.message}</p>
+                <button onclick="location.reload()">Recharger</button>
+            </div>
+        `;
+    },
+
+    // ===== NOTIFICATIONS =====
+    notifyLog(message, type = 'info') {
+        // Déléguer à console.js uniquement
+        window.dispatchEvent(new CustomEvent('console-log', {
+            detail: { message, type }
+        }));
+    },
+
+    // ===== API PUBLIQUE =====
     getCurrentView() {
         return this.currentView;
     },
 
     isMIDIConnected() {
-        return window.MIDI ? window.MIDI.isConnected() : false;
+        return this.modules.MIDI ? this.modules.MIDI.isConnected() : false;
+    },
+
+    getModule(moduleName) {
+        return this.modules[moduleName] || null;
+    },
+
+    isModuleLoaded(moduleName) {
+        return !!this.modules[moduleName];
     }
 };
 
 // ===== INITIALISATION GLOBALE =====
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌐 DOM loaded, initializing App...');
     App.init();
 });
 

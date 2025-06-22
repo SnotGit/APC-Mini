@@ -1,18 +1,22 @@
-
 const PadsContent = {
 
-    // ===== ÉTAT =====
-    selectedPad: null,
+    // ===== ÉTAT HUB CENTRAL =====
     padColors: {},
-    isInitialized: false,
+    highlightedPads: [],
+    selectedPad: null,
     currentMode: 'pads', // 'pads' ou 'groups'
-    sequencerActive: false,
-    sequencerGroup: null, // 2 ou 3
+    sequencerConfig: {
+        enabled: false,
+        groupId: null,
+        steps: 16,
+        highlightedPads: []
+    },
+    isInitialized: false,
 
     // ===== CRÉATION GRILLE PADS =====
     create() {
         return `
-            <div class="pad-grid">
+            <div class="pad-grid" id="padGrid">
                 ${this.generatePads()}
             </div>
         `;
@@ -36,7 +40,6 @@ const PadsContent = {
         return padsHTML;
     },
 
-    // ===== CRÉATION PAD INDIVIDUEL =====
     createPad(padNumber, midiNote) {
         return `
             <div class="pad" 
@@ -53,14 +56,15 @@ const PadsContent = {
         if (this.isInitialized) return;
         
         this.setupEventListeners();
-        this.setupCommunication();
         this.loadPadColors();
+        this.updateAllPadVisuals();
         
         this.isInitialized = true;
     },
 
     // ===== ÉVÉNEMENTS =====
     setupEventListeners() {
+        // Clics sur pads
         document.addEventListener('click', (e) => {
             const pad = e.target.closest('.pad');
             if (pad) {
@@ -69,60 +73,87 @@ const PadsContent = {
                 this.handlePadClick(padNumber, midiNote);
             }
         });
-    },
 
-    setupCommunication() {
-        // Écouter commandes depuis panel-config
+        // === RÉCEPTION ASSIGNATIONS COULEURS ===
+        
+        // Assignation pad individuel depuis pads-mode
         window.addEventListener('apply-pad-color', (event) => {
             const { padNumber, color } = event.detail;
             this.applyPadColor(padNumber, color);
         });
 
+        // Assignation groupe depuis groups-mode
         window.addEventListener('apply-group-color', (event) => {
-            const { groupPads, color } = event.detail;
-            this.applyGroupColor(groupPads, color);
+            const { groupPads, color, groupId } = event.detail;
+            this.applyGroupColor(groupPads, color, groupId);
         });
 
-        window.addEventListener('highlight-group', (event) => {
-            const { groupPads } = event.detail;
-            this.highlightGroup(groupPads);
-        });
-
+        // === GESTION MODES ===
+        
+        // Changement mode pads/groups
         window.addEventListener('mode-changed', (event) => {
             const { mode } = event.detail;
             this.currentMode = mode;
             this.clearSelection();
         });
 
-        window.addEventListener('sequencer-activated', (event) => {
-            const { groupId, activated } = event.detail;
-            this.sequencerActive = activated;
-            this.sequencerGroup = activated ? groupId : null;
-            this.updateSequencerMode();
+        // Highlight groupe (mode groups)
+        window.addEventListener('highlight-group', (event) => {
+            const { groupPads } = event.detail;
+            this.highlightGroup(groupPads);
         });
 
+        // === SÉQUENCEUR ===
+        
+        // Highlights séquenceur depuis groups-mode
+        window.addEventListener('sequencer-highlights-active', (event) => {
+            const { sequencerPads, groupId, steps } = event.detail;
+            this.applySequencerHighlights(sequencerPads, groupId, steps);
+        });
+
+        // Clear highlights séquenceur
+        window.addEventListener('clear-sequencer-highlights', () => {
+            this.clearSequencerHighlights();
+        });
+
+        // Config séquenceur depuis groups-mode
+        window.addEventListener('sequencer-config-update', (event) => {
+            const { groupId, steps, sequencerPads, enabled } = event.detail;
+            this.updateSequencerConfig(groupId, steps, sequencerPads, enabled);
+        });
+
+        // Désactivation séquenceur
+        window.addEventListener('sequencer-deactivated', () => {
+            this.deactivateSequencer();
+        });
+
+        // Clear sélection
         window.addEventListener('clear-selection', () => {
             this.clearSelection();
         });
     },
 
-    // ===== GESTION CLICS =====
+    // ===== GESTION CLICS PADS =====
     handlePadClick(padNumber, midiNote) {
-        // En mode groups : pas de sélection individuelle
-        if (this.currentMode === 'groups') return;
+        // Mode groups : pas de sélection individuelle
+        if (this.currentMode === 'groups') {
+            return;
+        }
         
-        // En mode pads : sélection normale
-        this.selectPad(padNumber);
-        
-        // Notifier panel-config
-        window.dispatchEvent(new CustomEvent('pad-selected', {
-            detail: { padNumber, midiNote }
-        }));
+        // Mode pads : sélection individuelle
+        if (this.currentMode === 'pads') {
+            this.selectPad(padNumber, midiNote);
+        }
     },
 
-    selectPad(padNumber) {
+    selectPad(padNumber, midiNote) {
         this.selectedPad = padNumber;
         this.updateAllPadVisuals();
+        
+        // Notifier pads-mode de la sélection
+        window.dispatchEvent(new CustomEvent('pad-clicked', {
+            detail: { padNumber, midiNote }
+        }));
     },
 
     clearSelection() {
@@ -130,7 +161,7 @@ const PadsContent = {
         this.updateAllPadVisuals();
     },
 
-    // ===== APPLICATION COULEURS =====
+    // ===== ASSIGNATION COULEURS =====
     applyPadColor(padNumber, color) {
         // Sauvegarder couleur
         if (color) {
@@ -142,23 +173,23 @@ const PadsContent = {
         // Mettre à jour visuel
         this.updatePadVisual(padNumber);
         
+        // Envoyer vers MIDI si connecté
+        this.sendPadColorToMIDI(padNumber, color);
+        
         // Log assignation
         const colorText = color || 'clear';
         window.dispatchEvent(new CustomEvent('pad-assigned', {
             detail: { padNumber, color: colorText }
         }));
         
-        // Désélectionner après assignation
+        // Sauvegarder config
+        this.savePadColors();
+        
+        // Clear sélection après assignation
         this.clearSelection();
     },
 
-    applyGroupColor(groupPads, color) {
-        // Ne pas appliquer si séquenceur actif sur ce groupe
-        const groupId = this.getGroupFromPads(groupPads);
-        if (this.sequencerActive && this.sequencerGroup === groupId) {
-            return; // Séquenceur = pas de coloration libre
-        }
-        
+    applyGroupColor(groupPads, color, groupId) {
         // Appliquer couleur à tous les pads du groupe
         groupPads.forEach(padNumber => {
             if (color) {
@@ -167,6 +198,7 @@ const PadsContent = {
                 delete this.padColors[padNumber];
             }
             this.updatePadVisual(padNumber);
+            this.sendPadColorToMIDI(padNumber, color);
         });
         
         // Log groupe
@@ -179,34 +211,93 @@ const PadsContent = {
         this.savePadColors();
     },
 
-    updateSequencerMode() {
-        const padGrid = document.querySelector('.pad-grid');
-        if (!padGrid) return;
-        
-        if (this.sequencerActive) {
-            // Mode séquenceur : hover blanc (null color)
-            padGrid.classList.add('sequencer-mode');
-        } else {
-            // Mode normal : hover standard
-            padGrid.classList.remove('sequencer-mode');
-        }
-        
-        this.updateAllPadVisuals();
-    },
-
+    // ===== GESTION HIGHLIGHTS =====
     highlightGroup(groupPads) {
-        // Nettoyer anciens highlights
+        // Nettoyer anciens highlights groupes
         document.querySelectorAll('.pad.group-highlight').forEach(pad => {
             pad.classList.remove('group-highlight');
         });
         
-        // Appliquer nouveaux highlights
+        // Appliquer nouveaux highlights groupes
         groupPads.forEach(padNumber => {
             const pad = document.querySelector(`[data-pad-number="${padNumber}"]`);
-            if (pad && !this.padColors[padNumber]) {
+            if (pad && !this.padColors[padNumber] && !this.isSequencerHighlighted(padNumber)) {
                 pad.classList.add('group-highlight');
             }
         });
+    },
+
+    applySequencerHighlights(sequencerPads, groupId, steps) {
+        // Sauvegarder état séquenceur
+        this.sequencerConfig.enabled = true;
+        this.sequencerConfig.groupId = groupId;
+        this.sequencerConfig.steps = steps;
+        this.sequencerConfig.highlightedPads = sequencerPads;
+        
+        // Nettoyer anciens highlights séquenceur
+        this.clearSequencerHighlights();
+        
+        // Appliquer nouveaux highlights séquenceur
+        sequencerPads.forEach(padNumber => {
+            const pad = document.querySelector(`[data-pad-number="${padNumber}"]`);
+            if (pad) {
+                pad.classList.add('sequencer-highlight');
+            }
+        });
+        
+        // Envoyer highlights vers MIDI
+        this.sendSequencerHighlightsToMIDI(sequencerPads);
+        
+        // Mettre à jour mode grille
+        this.updateGridMode();
+    },
+
+    clearSequencerHighlights() {
+        // Nettoyer CSS highlights séquenceur
+        document.querySelectorAll('.pad.sequencer-highlight').forEach(pad => {
+            pad.classList.remove('sequencer-highlight');
+        });
+        
+        // Nettoyer MIDI highlights (si pas de couleur assignée)
+        this.sequencerConfig.highlightedPads.forEach(padNumber => {
+            if (!this.padColors[padNumber]) {
+                this.sendPadColorToMIDI(padNumber, null);
+            }
+        });
+        
+        // Reset config séquenceur
+        this.sequencerConfig.highlightedPads = [];
+        this.updateGridMode();
+    },
+
+    // ===== SÉQUENCEUR CONFIG =====
+    updateSequencerConfig(groupId, steps, sequencerPads, enabled) {
+        this.sequencerConfig = {
+            enabled,
+            groupId,
+            steps,
+            highlightedPads: sequencerPads
+        };
+        
+        // Transmettre config à sequencer-content
+        window.dispatchEvent(new CustomEvent('sequencer-config-received', {
+            detail: {
+                groupId,
+                steps,
+                sequencerPads,
+                enabled
+            }
+        }));
+    },
+
+    deactivateSequencer() {
+        this.sequencerConfig.enabled = false;
+        this.clearSequencerHighlights();
+        
+        // Notifier sequencer-content
+        window.dispatchEvent(new CustomEvent('sequencer-config-received', {
+            detail: { enabled: false }
+        }));
     },
 
     // ===== ÉTATS VISUELS =====
@@ -217,12 +308,12 @@ const PadsContent = {
         // Reset classes
         pad.classList.remove('selected', 'group-highlight', 'color-green', 'color-yellow', 'color-red');
 
-        // État sélectionné
-        if (this.selectedPad === padNumber) {
+        // État sélectionné (mode pads uniquement)
+        if (this.selectedPad === padNumber && this.currentMode === 'pads') {
             pad.classList.add('selected');
         }
         
-        // Couleur assignée
+        // Couleur assignée (priorité sur highlights)
         const color = this.padColors[padNumber];
         if (color) {
             pad.classList.add(`color-${color}`);
@@ -235,6 +326,33 @@ const PadsContent = {
         }
     },
 
+    updateGridMode() {
+        const padGrid = document.getElementById('padGrid');
+        if (!padGrid) return;
+        
+        padGrid.classList.toggle('sequencer-mode', this.sequencerConfig.enabled);
+    },
+
+    // ===== COMMUNICATION MIDI =====
+    sendPadColorToMIDI(padNumber, color) {
+        if (!window.MIDI || !window.MIDI.isConnected()) return;
+        
+        const midiNote = padNumber - 1; // Convert to MIDI note (0-63)
+        window.MIDI.setPadColor(midiNote, color);
+    },
+
+    sendSequencerHighlightsToMIDI(sequencerPads) {
+        if (!window.MIDI || !window.MIDI.isConnected()) return;
+        
+        sequencerPads.forEach(padNumber => {
+            const midiNote = padNumber - 1;
+            // Highlights séquenceur en jaune si pas de couleur assignée
+            if (!this.padColors[padNumber]) {
+                window.MIDI.setPadColor(midiNote, 'YELLOW');
+            }
+        });
+    },
+
     // ===== PERSISTENCE =====
     loadPadColors() {
         if (window.App && window.App.getConfig) {
@@ -242,6 +360,11 @@ const PadsContent = {
             if (padsConfig && padsConfig.padColors) {
                 this.padColors = { ...padsConfig.padColors };
                 this.updateAllPadVisuals();
+                
+                // Appliquer couleurs au MIDI
+                Object.entries(this.padColors).forEach(([padNumber, color]) => {
+                    this.sendPadColorToMIDI(parseInt(padNumber), color);
+                });
             }
         }
     },
@@ -261,21 +384,24 @@ const PadsContent = {
         return this.selectedPad;
     },
 
-    getGroupFromPads(groupPads) {
-        // Identifier le groupe selon les pads
-        // Groupe 1: [1,2,3,4,9,10,11,12,17,18,19,20,25,26,27,28]
-        // Groupe 2: [33,34,35,36,41,42,43,44,49,50,51,52,57,58,59,60] 
-        // Groupe 3: [37,38,39,40,45,46,47,48,53,54,55,56,61,62,63,64]
-        // Groupe 4: [5,6,7,8,13,14,15,16,21,22,23,24,29,30,31,32]
-        
-        if (groupPads.includes(1)) return 1;
-        if (groupPads.includes(33)) return 2;
-        if (groupPads.includes(37)) return 3;
-        if (groupPads.includes(5)) return 4;
-        
-        return null;
-    }
+    isSequencerHighlighted(padNumber) {
+        return this.sequencerConfig.highlightedPads.includes(padNumber);
+    },
 
+    getSequencerConfig() {
+        return { ...this.sequencerConfig };
+    },
+
+    // ===== DEBUGGING =====
+    getState() {
+        return {
+            currentMode: this.currentMode,
+            selectedPad: this.selectedPad,
+            padColorsCount: Object.keys(this.padColors).length,
+            sequencerConfig: this.sequencerConfig,
+            highlightedPadsCount: this.sequencerConfig.highlightedPads.length
+        };
+    }
 };
 
 // ===== EXPORT GLOBAL =====
