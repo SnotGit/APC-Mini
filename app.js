@@ -10,14 +10,11 @@ const App = {
         if (this.isInitialized) return;
 
         try {
-            console.log('🚀 Initialisation App...');
-
             // 1. Console en premier
             this.initConsole();
             
             // 2. Log initial après que Console soit initialisé
             setTimeout(() => {
-                this.log('APC Mini MK1', 'system');
             }, 100);
 
             // 3. Configuration
@@ -39,7 +36,6 @@ const App = {
             this.switchToView('pads');
 
             this.isInitialized = true;
-            console.log('✅ App initialisée !');
 
         } catch (error) {
             console.error('❌ Erreur init:', error);
@@ -74,7 +70,7 @@ const App = {
     // ===== MIDI MANAGER =====
     async initMIDI() {
         if (!window.MIDI) {
-            this.log('Module MIDI non trouvé', 'error');
+            this.log('Connecter Apc Mini MK1', 'error');
             return;
         }
 

@@ -1,62 +1,98 @@
+/* ===== SECTION SÉQUENCEUR ===== */
+.sequencer-section {
+    width: 100%;
+    margin-top: auto;
+}
 
-
+/* ===== TOGGLE SÉQUENCEUR ===== */
 .sequencer-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    color: #ffffff;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    height: 35px;
+    width: 100%;
 }
 
-/* Tab Switch */
-.tab-switch {
+.sequencer-toggle input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: #5aa3d0;
+    margin-right: 10px;
+}
+
+.sequencer-toggle input[type="checkbox"]:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* ===== SLIDER SWITCH 16/32 STEPS ===== */
+.steps-switch {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.switch-label {
+    font-size: 14px;
+    color: #5aa3d0;
+    font-weight: 500;
+}
+
+.slider-switch {
     position: relative;
     display: inline-block;
+    width: 58px;
+    height: 23px;
 }
 
-.tab-switch input {
-    position: absolute;
+.slider-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.tab-switch-container {
-    display: flex;
-    background-color: #e8e8e8;
-    border-radius: 8px;
-    border: 2px solid #999;
-    overflow: hidden;
-}
-
-/* Les deux options */
-.tab-option {
-    width: 60px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 500;
+.slider {
+    position: absolute;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: #666;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #3a3a3a;
+    border: 2px solid #555;
+    border-radius: 6px;
+    transition: 0.3s;
 }
 
-/* ÉTAT INITIAL : 4 bars sélectionné (unchecked) */
-.tab-option:first-child {
-    background-color: #2196F3;
-    color: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 15px;
+    width: 25px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ccc;
+    border-radius: 6px;
+    transition: 0.3s;
 }
 
-/* QUAND COCHÉ : 8 bars sélectionné */
-.tab-switch input:checked + .tab-switch-container .tab-option:first-child {
-    background-color: transparent;
-    color: #666;
-    box-shadow: none;
+/* ===== SLIDER CHECKED STATE ===== */
+input:checked+.slider {
+    background-color: #5aa3d0;
+    border-color: #5aa3d0;
 }
 
-.tab-switch input:checked + .tab-switch-container .tab-option:last-child {
-    background-color: #2196F3;
-    color: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+input:checked+.slider:before {
+    transform: translateX(25px);
+    background-color: white;
 }

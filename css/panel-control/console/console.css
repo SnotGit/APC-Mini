@@ -38,18 +38,19 @@
 
 .console-clear {
     background: transparent;
-    border: 2px solid #555;
-    color: #888;
+    border: 2px solid #888;
+    color: #ccc;
     padding: 6px 16px;
     cursor: pointer;
-    font-size: 11px;
-    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 6px;
     transition: all 0.2s ease;
 }
 
 .console-clear:hover {
-    color: #ffffff;
-    border-color: #ffffff;
+    transform: scale(105%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .console-content {

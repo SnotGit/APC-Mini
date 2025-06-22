@@ -3,7 +3,7 @@ const Console = {
     // ===== ÉTAT =====
     isInitialized: false,
     logs: [],
-    maxLogs: 100,
+    maxLogs: 1000,
 
     // ===== CRÉATION TEMPLATE =====
     create() {
@@ -98,11 +98,11 @@ const Console = {
         };
 
         // Ajouter au tableau
-        this.logs.unshift(logEntry);
+        this.logs.push(logEntry);
 
         // Limiter nombre de logs
         if (this.logs.length > this.maxLogs) {
-            this.logs = this.logs.slice(0, this.maxLogs);
+            this.logs = this.logs.slice(-this.maxLogs);
         }
 
         // Afficher dans interface
@@ -120,8 +120,8 @@ const Console = {
             ${logEntry.message}
         `;
 
-        // Insérer en haut (logs récents en premier)
-        consoleContent.insertBefore(logElement, consoleContent.firstChild);
+        // Insérer en bas
+        consoleContent.appendChild(logElement);
 
         // Auto-scroll si nécessaire
         this.autoScroll();
@@ -130,11 +130,7 @@ const Console = {
     autoScroll() {
         const consoleContent = document.getElementById('consoleContent');
         if (consoleContent) {
-            // Si utilisateur n'a pas scrollé manuellement, auto-scroll
-            const isScrolledToBottom = consoleContent.scrollTop <= 10;
-            if (isScrolledToBottom) {
-                consoleContent.scrollTop = 0;
-            }
+            consoleContent.scrollTop = consoleContent.scrollHeight;
         }
     },
 

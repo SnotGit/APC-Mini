@@ -29,9 +29,7 @@
     font-weight: 500;
     line-height: 1.4;
     padding: 8px;
-    background: rgba(255, 255, 255, 0.03);
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ===== PAD INFO CONTENT STATES ===== */
@@ -41,12 +39,3 @@
     font-style: italic;
 }
 
-/* ===== HOVER/FOCUS STATES ===== */
-.info-section:hover {
-    border-color: #666;
-}
-
-.info-section:hover .info-content {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.15);
-}
