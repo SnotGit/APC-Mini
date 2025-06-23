@@ -1,7 +1,7 @@
 const PadsColors = {
 
     // ===== ÉTAT =====
-    currentMode: 'pads', // 'pads' ou 'groups'
+    currentMode: 'pads',
     selectedPad: null,
     selectedGroup: null,
     colorsEnabled: true,
@@ -36,7 +36,6 @@ const PadsColors = {
 
     // ===== ÉVÉNEMENTS =====
     setupEventListeners() {
-        // Clics boutons couleurs
         document.addEventListener('click', (e) => {
             const colorBtn = e.target.closest('.color-btn');
             if (colorBtn) {
@@ -45,31 +44,32 @@ const PadsColors = {
             }
         });
 
-        // Écouter changement de mode (pads/groups)
         window.addEventListener('mode-changed', (event) => {
             const { mode } = event.detail;
             this.currentMode = mode;
             this.resetSelections();
         });
 
-        // Écouter sélection pad depuis pads-mode
         window.addEventListener('pad-selected', (event) => {
             const { padNumber } = event.detail;
-            this.selectedPad = padNumber;
-            this.selectedGroup = null; // Reset groupe
-            this.updateColorsState();
+            if (this.isPadSelectable(padNumber)) {
+                this.selectedPad = padNumber;
+                this.selectedGroup = null;
+                this.updateColorsState();
+            } else {
+                this.selectedPad = null;
+                this.updateColorsState();
+            }
         });
 
-        // Écouter sélection groupe depuis groups-mode
         window.addEventListener('group-selected', (event) => {
             const { groupId, sequencerEnabled } = event.detail;
             this.selectedGroup = groupId;
-            this.selectedPad = null; // Reset pad
-            this.colorsEnabled = !sequencerEnabled; // Couleurs interdites si séquenceur actif
+            this.selectedPad = null;
+            this.colorsEnabled = !sequencerEnabled;
             this.updateColorsState();
         });
 
-        // Écouter autorisation couleurs depuis groups-mode
         window.addEventListener('sequencer-colors-disabled', () => {
             this.colorsEnabled = false;
             this.updateColorsState();
@@ -80,17 +80,34 @@ const PadsColors = {
             this.updateColorsState();
         });
 
-        // Écouter déselection
         window.addEventListener('clear-selection', () => {
             this.resetSelections();
+        });
+
+        window.addEventListener('group-assigned', () => {
+            if (this.selectedPad && this.isPadOccupiedByGroup(this.selectedPad)) {
+                this.selectedPad = null;
+                this.updateColorsState();
+            }
+        });
+
+        window.addEventListener('pad-assigned', () => {
+            this.updateColorsState();
+        });
+
+        window.addEventListener('sequencer-controls-active', (event) => {
+            const { active, controlButtons } = event.detail;
+            if (active && this.selectedPad && this.isPadControlSequencer(this.selectedPad)) {
+                this.selectedPad = null;
+                this.updateColorsState();
+            }
         });
     },
 
     // ===== GESTION COULEURS =====
     handleColorClick(colorName) {
-        // Vérifier si couleurs autorisées
         if (!this.colorsEnabled) {
-            return; // Couleurs interdites en mode séquenceur
+            return;
         }
 
         const color = colorName === 'clear' ? null : colorName;
@@ -104,10 +121,15 @@ const PadsColors = {
 
     applyPadColor(color) {
         if (!this.selectedPad) {
-            return; // Pas de pad sélectionné
+            return;
         }
 
-        // Envoyer vers pads-content
+        if (!this.isPadSelectable(this.selectedPad)) {
+            this.selectedPad = null;
+            this.updateColorsState();
+            return;
+        }
+
         window.dispatchEvent(new CustomEvent('apply-pad-color', {
             detail: { 
                 padNumber: this.selectedPad, 
@@ -115,46 +137,98 @@ const PadsColors = {
             }
         }));
 
-        // Reset sélection après assignation
         this.selectedPad = null;
         this.updateColorsState();
     },
 
     applyGroupColor(color) {
         if (!this.selectedGroup) {
-            return; // Pas de groupe sélectionné
+            return;
         }
 
-        // Demander à groups-mode d'appliquer la couleur (vérification autorisations)
         window.dispatchEvent(new CustomEvent('group-color-request', {
             detail: { 
                 groupId: this.selectedGroup,
                 color 
             }
         }));
+    },
 
-        // Garder sélection groupe pour assignations multiples
+    // ===== VALIDATION DISPONIBILITÉ =====
+    isPadSelectable(padNumber) {
+        if (this.isPadOccupiedByGroup(padNumber)) {
+            return false;
+        }
+        
+        if (this.isPadInAssignedGroupZone(padNumber)) {
+            return false;
+        }
+        
+        if (this.isPadControlSequencer(padNumber)) {
+            return false;
+        }
+        
+        return true;
+    },
+
+    isPadOccupiedByGroup(padNumber) {
+        if (window.PadsContent && window.PadsContent.isPadInGroupAssignment) {
+            return window.PadsContent.isPadInGroupAssignment(padNumber);
+        }
+        return false;
+    },
+
+    isPadInAssignedGroupZone(padNumber) {
+        if (window.PadsContent && window.PadsContent.isPadInAssignedGroupZone) {
+            return window.PadsContent.isPadInAssignedGroupZone(padNumber);
+        }
+        return false;
+    },
+
+    isPadControlSequencer(padNumber) {
+        if (window.PadsContent && window.PadsContent.isPadControlSequencer) {
+            return window.PadsContent.isPadControlSequencer(padNumber);
+        }
+        return false;
     },
 
     // ===== ÉTATS VISUELS =====
     updateColorsState() {
-        // Mettre à jour apparence boutons couleurs
         document.querySelectorAll('.color-btn').forEach(btn => {
-            // Désactiver si couleurs interdites
-            btn.classList.toggle('disabled', !this.colorsEnabled);
-            btn.disabled = !this.colorsEnabled;
+            btn.classList.remove('disabled', 'ready', 'unavailable');
+            btn.disabled = false;
 
-            // Indication visuelle selon sélection
-            const hasSelection = this.selectedPad || this.selectedGroup;
-            btn.classList.toggle('ready', this.colorsEnabled && hasSelection);
+            if (!this.colorsEnabled) {
+                btn.classList.add('disabled');
+                btn.disabled = true;
+            } else {
+                const hasValidSelection = this.hasValidSelection();
+                btn.classList.toggle('ready', hasValidSelection);
+                
+                if (this.selectedPad && !this.isPadSelectable(this.selectedPad)) {
+                    btn.classList.add('unavailable');
+                    btn.disabled = true;
+                }
+            }
         });
 
-        // Mettre à jour curseur selon état
         const colorSection = document.querySelector('.color-section');
         if (colorSection) {
             colorSection.classList.toggle('colors-disabled', !this.colorsEnabled);
-            colorSection.classList.toggle('has-selection', this.selectedPad || this.selectedGroup);
+            colorSection.classList.toggle('has-selection', this.hasValidSelection());
+            colorSection.classList.toggle('invalid-selection', 
+                this.selectedPad && !this.isPadSelectable(this.selectedPad)
+            );
         }
+    },
+
+    hasValidSelection() {
+        if (this.currentMode === 'pads') {
+            return this.selectedPad && this.isPadSelectable(this.selectedPad);
+        } else if (this.currentMode === 'groups') {
+            return this.selectedGroup !== null;
+        }
+        return false;
     },
 
     resetSelections() {
@@ -180,7 +254,6 @@ const PadsColors = {
         return this.currentMode;
     },
 
-    // ===== UTILITAIRES =====
     setColorsEnabled(enabled) {
         this.colorsEnabled = enabled;
         this.updateColorsState();
@@ -192,12 +265,13 @@ const PadsColors = {
             currentMode: this.currentMode,
             selectedPad: this.selectedPad,
             selectedGroup: this.selectedGroup,
-            colorsEnabled: this.colorsEnabled
+            colorsEnabled: this.colorsEnabled,
+            hasValidSelection: this.hasValidSelection(),
+            isPadSelectable: this.selectedPad ? this.isPadSelectable(this.selectedPad) : null
         };
     }
 };
 
-// ===== EXPORT GLOBAL =====
 if (typeof window !== 'undefined') {
     window.PadsColors = PadsColors;
 }

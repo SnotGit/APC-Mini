@@ -35,14 +35,15 @@
 }
 
 .group-btn:hover {
-    border-color: #888;
+    border-color: #ffffff;
     background: rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
+    color: #ffffff;
 }
 
+/* ===== ÉTAT SÉLECTIONNÉ TEMPORAIRE ===== */
 .group-btn.active {
-    border-color: #5aa3d0;
-    background: #5aa3d0;
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     box-shadow: 0 2px 4px rgba(90, 163, 208, 0.3);
 }
@@ -53,16 +54,90 @@
     color: white;
 }
 
+/* ===== ÉTAT SÉQUENCEUR ACTIF ===== */
 .group-btn.sequencer-active {
     border-color: #ffffff;
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* ===== SÉCURITÉ MODE 32 - BOUTONS DÉSACTIVÉS ===== */
-.group-btn.disabled-safety {
+/* ===== MODE 32 STEPS - BORDURE BLANCHE PERMANENTE ===== */
+.group-btn.mode-32-visual {
+    border-color: #ffffff !important;
+    background: transparent !important;
+    color: #ffffff !important;
     pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+/* ===== GROUPES AVEC COULEURS ASSIGNÉES ===== */
+.group-btn.assigned-green {
+    border-color: #4CAF50 !important;
+    background: transparent !important;
+    color: #4CAF50 !important;
+    box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3);
+}
+
+.group-btn.assigned-yellow {
+    border-color: #FFC107 !important;
+    background: transparent !important;
+    color: #FFC107 !important;
+    box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.3);
+}
+
+.group-btn.assigned-red {
+    border-color: #F44336 !important;
+    background: transparent !important;
+    color: #F44336 !important;
+    box-shadow: 0 0 0 1px rgba(244, 67, 54, 0.3);
+}
+
+/* ===== HOVER POUR GROUPES ASSIGNÉS ===== */
+.group-btn.assigned-green:hover {
+    background: rgba(76, 175, 80, 0.1) !important;
+}
+
+.group-btn.assigned-yellow:hover {
+    background: rgba(255, 193, 7, 0.1) !important;
+}
+
+.group-btn.assigned-red:hover {
+    background: rgba(244, 67, 54, 0.1) !important;
+}
+
+/* ===== COMBINAISONS D'ÉTATS ===== */
+
+/* Mode 32 + Assigné = Bordure blanche prioritaire */
+.group-btn.mode-32-visual.assigned-green,
+.group-btn.mode-32-visual.assigned-yellow,
+.group-btn.mode-32-visual.assigned-red {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Séquenceur actif + Assigné = Bordure blanche prioritaire */
+.group-btn.sequencer-active.assigned-green,
+.group-btn.sequencer-active.assigned-yellow,
+.group-btn.sequencer-active.assigned-red {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===== ÉTAT DÉSACTIVÉ ===== */
+.group-btn:disabled {
+    cursor: not-allowed;
+}
+
+.group-btn:disabled:hover {
+    background: transparent !important;
+    border-color: inherit !important;
+}
+
+/* ===== CONFLIT DE ZONE ===== */
+.group-btn.zone-conflict {
     border-color: #666 !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #ccc !important;
-    box-shadow: none !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    color: #666 !important;
+    opacity: 0.5;
 }

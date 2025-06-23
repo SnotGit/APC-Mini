@@ -2,7 +2,7 @@ const App = {
 
     // ===== ÉTAT ORCHESTRATEUR =====
     isInitialized: false,
-    currentView: 'pads',
+    currentView: null,
     modules: {},
     config: {},
 
@@ -45,10 +45,7 @@ const App = {
 
     // ===== ACTIVATION VUE PAR DÉFAUT =====
     activateDefaultView() {
-        // Cela synchronise header + content + config
-        window.dispatchEvent(new CustomEvent('view-changed', {
-            detail: { view: 'pads' }
-        }));
+        this.switchToView('pads');
     },
 
     // ===== VÉRIFICATION MODULES =====
@@ -95,8 +92,6 @@ const App = {
 
     // ===== GESTIONNAIRE VUES =====
     switchToView(viewId) {
-        if (this.currentView === viewId) return;
-        
         if (window.Debug) window.Debug.viewSwitch(viewId);
         this.currentView = viewId;
 
@@ -105,7 +100,7 @@ const App = {
         }
 
         if (window.PanelControl) {
-            window.PanelControl.showConfig(viewId);
+            window.PanelControl.switchConfig(viewId);
         }
         
         this.notifyLog(`Vue switched: ${viewId}`, 'info');

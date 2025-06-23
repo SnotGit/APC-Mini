@@ -25,7 +25,11 @@ const PanelControl = {
 
     // ===== ÉVÉNEMENTS =====
     setupEventListeners() {
-        // Écouter demandes de changement config depuis app.js
+        window.addEventListener('view-changed', (event) => {
+            const { view } = event.detail;
+            this.switchConfig(view);
+        });
+
         window.addEventListener('panel-config-switch', (event) => {
             const { configType } = event.detail;
             this.switchConfig(configType);
@@ -58,7 +62,6 @@ const PanelControl = {
                 configModule = window.SequencerConfig;
                 break;
             case 'export':
-                // Export n'a pas de config
                 configContent.innerHTML = '';
                 return;
         }
@@ -67,7 +70,6 @@ const PanelControl = {
             try {
                 configContent.innerHTML = configModule.create();
                 
-                // Initialiser config
                 if (configModule.init) {
                     configModule.init();
                 }

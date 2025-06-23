@@ -1,0 +1,267 @@
+# 🎛️ WORKFLOW COMPLET - PAGE PADS
+
+## 📋 RESPONSABILITÉS CLAIRES
+
+### Pads-Content
+- **Assignations couleurs** (vert/jaune/rouge/clear)
+- **Assignations groupes** (1,2,3,4)
+- **Affichage visuel** interface web + APC physique
+- **Gestion highlights** groupes et séquenceur
+
+### Sequencer-Content  
+- **Logique séquenceur** uniquement
+- **Ordre steps** selon mapping pads
+- **Contrôles** play/stop/mode/scales
+
+---
+
+## 🔄 PERSISTANCE ET PRIORITÉ ASSIGNATIONS
+
+### États des Pads
+```
+PAD LIBRE → Assignable en pads-mode ET groups-mode
+PAD ASSIGNÉ INDIVIDUELLEMENT → Surcharge possible en groups-mode
+PAD ASSIGNÉ EN GROUPE → Non-modifiable en pads-mode (occupé)
+PAD CONTRÔLE SÉQUENCEUR → Non-assignable (réservé système)
+```
+
+### Transitions Modes
+
+#### Groups-Mode → Pads-Mode
+```
+Groupe entièrement assigné → Pads non-sélectionnables
+Groupe partiellement assigné → Pads libres assignables  
+Aucune assignation groupe → Tous pads libres assignables
+```
+
+#### Pads-Mode → Groups-Mode
+```
+Pads individuels assignés → Highlights partiels groupe
+Assignation groupe → Surcharge pads individuels
+Clear groupe → Libère tous les pads du groupe
+```
+
+### Exemples Concrets
+
+#### Cas 1 : Groupe 1 Entièrement Rouge
+```
+Groups-mode : Assign rouge groupe 1 → 16 pads rouges
+Pads-mode : Clics pads groupe 1 → Aucune action (occupés)
+Pads-mode : Autres pads → Assignables normalement
+```
+
+#### Cas 2 : Assignations Mixtes
+```
+Pads-mode : Pads 57,58,59 verts (individuels)
+Groups-mode : Groupe 1 → Highlights partiels (3 verts + 13 libres)
+Groups-mode : Assign rouge groupe 1 → Surcharge TOUT en rouge
+```
+
+#### Cas 3 : Libération
+```
+Groups-mode : Clear groupe 1 → Libère 16 pads
+Pads-mode : 16 pads redeviennent assignables
+```
+
+---
+
+## 🔄 WORKFLOW UTILISATEUR COMPLET
+
+### PHASE 1 : Mode Pads
+
+#### Sélection Pad Individuel
+```
+Clic pad LIBRE → Sélection + info affichée
+Clic pad ASSIGNÉ (via groups-mode) → Aucune action (pad occupé)
+Re-clic pad sélectionné SANS couleur → Désélection
+Re-clic pad sélectionné AVEC couleur → Maintien sélection
+Clic couleur → Assignation + clear sélection
+```
+
+#### Sélection Groupe  
+```
+Clic groupe → Sélection + highlights pads + hover bouton
+Re-clic groupe SANS assignation → Désélection + clear highlights
+Re-clic groupe AVEC assignation → Re-sélection + highlights
+Clic couleur → Assignation à TOUS les pads du groupe
+```
+
+### PHASE 1.5 : Persistance Inter-Modes
+
+#### Groups-Mode → Pads-Mode
+```
+Assignations groups-mode → PERSISTENT dans pads-mode
+Pads assignés en groupe → NON-SÉLECTIONNABLES en pads-mode
+Pads libres → Assignables individuellement en pads-mode
+```
+
+#### Pads-Mode → Groups-Mode
+```
+Assignations pads-mode → PERSISTENT dans groups-mode  
+Groupe partiellement assigné → Highlights partiels + assignation groupe possible
+Groupe complètement assigné → Re-sélection groupe + surcharge possible
+```
+
+### PHASE 2 : Toggle Séquenceur (16 Steps)
+
+#### Activation Séquenceur
+```
+Toggle ON → Clear couleurs pads + highlights séquenceur blanc
+         → Pads contrôles activés (couleurs spécifiques)
+         → Couleurs groupes INTERDITES (boutons disabled)
+```
+
+#### Désactivation Séquenceur  
+```
+Toggle OFF → Clear highlights séquenceur
+          → Restore couleurs pads (si assignées avant)
+          → OU restore hover groupe (si pas couleurs)
+          → Couleurs groupes AUTORISÉES
+```
+
+### PHASE 3 : Mode 32 Steps
+
+#### Switch vers 32
+```
+Switch 32 → Groupe 5 conceptuel actif (pads 57→40)
+          → Boutons 1,2 = hover permanent + disabled
+          → Boutons 3,4 = normaux + clicables
+          → Highlights 32 pads séquenceur
+          → Pads contrôles : 25,26,27,28 (comme groupe 1)
+```
+
+#### Switch retour 16
+```
+Switch 16 → Retour groupe origine (1 ou 2)
+          → Boutons 1,2 = normaux + clicables
+          → Restore état avant mode 32
+```
+
+---
+
+## ⚠️ CONFLITS PADS CONTRÔLES
+
+### Groupe 1 + Séquenceur Actif
+- **Pads occupés** : 25,26,27,28 (contrôles séquenceur)
+- **Groupe 3 impact** : 12 pads disponibles au lieu de 16
+- **Groupe 3 disponible** : 17,18,19,20,9,10,11,12,1,2,3,4
+
+### Groupe 2 + Séquenceur Actif  
+- **Pads occupés** : 29,30,31,32 (contrôles séquenceur)
+- **Groupe 4 impact** : 12 pads disponibles au lieu de 16
+- **Groupe 4 disponible** : 21,22,23,24,13,14,15,16,5,6,7,8
+
+### Mode 32 Steps (Groupe 5) + Séquenceur
+- **Pads occupés** : 25,26,27,28 (contrôles séquenceur)
+- **Groupes 3,4** : normaux (pas d'impact)
+
+---
+
+## 🎯 ORDRE SÉQUENCE (CRITIQUE)
+
+### Groupe 1 (16 steps)
+**Ordre** : 57→58→59→60→49→50→51→52→41→42→43→44→33→34→35→36
+**Logique** : Ligne par ligne, gauche vers droite
+
+### Groupe 2 (16 steps)
+**Ordre** : 61→62→63→64→53→54→55→56→45→46→47→48→37→38→39→40
+**Logique** : Ligne par ligne, gauche vers droite
+
+### Groupe 5 (32 steps) 
+**Ordre** : 57→58→59→60→61→62→63→64→49→50→51→52→53→54→55→56→41→42→43→44→45→46→47→48→33→34→35→36→37→38→39→40
+**Logique** : Toute la grille supérieure, ligne par ligne
+
+---
+
+## 🎨 ÉTATS VISUELS
+
+### Interface Web
+- **Hover groupe** : bouton surligné + pads highlights
+- **Séquenceur actif** : highlights blancs permanents  
+- **Couleurs assignées** : vert/jaune/rouge selon assignation
+- **Mode 32** : boutons 1,2 hover permanent + disabled
+
+### APC Physique
+- **Base** : tous pads OFF (noirs)
+- **Couleurs assignées** : vert/jaune/rouge selon assignation
+- **Contrôles séquenceur** : couleurs spécifiques + clignotements
+- **Press pad** : couleur temporaire pendant appui
+
+---
+
+## ⚙️ COMMUNICATION MODULES
+
+### Pads-Content (HUB CENTRAL)
+```
+Reçoit de PadsMode → apply-pad-color (si pad libre)
+Reçoit de GroupsMode → apply-group-color + sequencer-config  
+Envoie vers MIDI → couleurs LED temps réel
+Envoie vers SequencerContent → config séquenceur
+Gère → persistance assignations inter-modes
+Vérifie → disponibilité pads selon mode
+```
+
+### GroupsMode 
+```
+Gère → sélection groupes + toggle séquenceur + switch 16/32
+Envoie vers PadsContent → highlights + config + surcharge assignations
+Reçoit de SequencerMode → états toggle/switch
+Affiche → highlights partiels si assignations mixtes
+```
+
+### PadsMode
+```
+Gère → sélection pads individuels + info affichage
+Envoie vers PadsContent → apply-pad-color (avec vérification)
+Reçoit → état assignations existantes pour filtrer pads clicables
+Affiche → seulement info pads non-occupés par groupes
+```
+
+### PadsColors
+```
+Gère → boutons couleurs + autorisations
+Envoie vers PadsContent → assignations couleurs  
+État → enabled/disabled selon mode séquenceur + disponibilité pads
+Logique → surcharge groupes vs protection pads individuels
+```
+
+---
+
+## 🔒 IMPLICATIONS TECHNIQUES
+
+### Tracking Assignations
+```
+PadsContent doit tracker :
+- padColors[padNumber] = 'red' // Assignation individuelle
+- groupAssignments[groupId] = 'green' // Assignation groupe
+- Priorité : groupe > individuel
+```
+
+### Validation Clics
+```
+PadsMode.handlePadClick() :
+- Vérifier si pad libre (pas dans groupe assigné)
+- Vérifier si pad non-contrôle séquenceur
+- Autoriser sélection seulement si disponible
+```
+
+### Interface Visuelle
+```
+Pads occupés (groups-mode) :
+- Couleur assignée affichée
+- Hover désactivé
+- Cursor: not-allowed
+- Classes CSS distinctes
+```
+
+---
+
+## 🎯 RÉSULTAT FINAL
+
+**Page Pads** = Interface complète pour :
+1. **Assignations couleurs** (pads individuels + groupes)
+2. **Configuration séquenceur** (toggle + 16/32 steps)  
+3. **Feedback visuel** (interface + APC synchronisés)
+4. **Gestion conflits** (pads contrôles vs groupes)
+
+**Communication** vers **Sequencer-Content** pour exécution séquences selon configuration établie.

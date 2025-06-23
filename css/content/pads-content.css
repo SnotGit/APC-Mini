@@ -27,8 +27,8 @@
     position: relative;
 }
 
-/* HOVER CONDITIONNEL - SEULEMENT pads non-colorés ET non-assignés */
-.pad:not(.color-green):not(.color-yellow):not(.color-red):not(.assigned):hover {
+/* HOVER CONDITIONNEL - SEULEMENT pads non-colorés ET non-occupés */
+.pad:not(.color-green):not(.color-yellow):not(.color-red):not(.pad-occupied):hover {
     border-color: #ffffff;
     transform: translateY(-1px);
 }
@@ -36,13 +36,11 @@
 /* ===== MODE SÉQUENCEUR - HOVER BLANC ===== */
 .pad-grid.sequencer-mode .pad:hover {
     border-color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* ===== SÉQUENCEUR PADS HIGHLIGHT BLANC ===== */
 .pad-grid.sequencer-mode .pad.sequencer-highlight {
     border-color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.2) !important;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6) !important;
 }
 
@@ -54,8 +52,18 @@
 
 .pad.group-highlight {
     border-color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.15) !important;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ===== PADS OCCUPÉS ===== */
+.pad.pad-occupied:not(.color-green):not(.color-yellow):not(.color-red):not(.control-pad-active) {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pad.pad-occupied:not(.color-green):not(.color-yellow):not(.color-red):not(.control-pad-active):hover {
+    border-color: #444 !important;
+    transform: none !important;
 }
 
 /* Couleurs des pads */
