@@ -89,3 +89,8 @@
 .pad.color-yellow .pad-number {
     color: #ffffff;
 }
+
+/* ===== PADS CONTRÔLE SÉQUENCEUR ===== */
+.pad.control-pad-active {
+    pointer-events: none;
+}

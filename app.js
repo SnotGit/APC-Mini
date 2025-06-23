@@ -11,31 +11,42 @@ const App = {
         if (this.isInitialized) return;
 
         try {
+            if (window.Debug) window.Debug.initStart();
+            
             // 1. Console en premier (logging system)
             this.initModule('Console');
             
             // 2. Configuration system
             this.loadConfig();
 
-            // 3. Modules core
+            // 3. Initialiser modules core
             this.initModule('Header');
+            this.initModule('ContentZone');
+            this.initModule('PanelControl');
             await this.initMIDI();
 
-            // 4. Architecture vues
-            this.initViewArchitecture();
-
-            // 5. Communication inter-modules
+            // 4. Communication inter-modules
             this.setupGlobalCommunication();
 
-            // 6. Vue par défaut
+            // 6. Vérifier modules critiques
+            this.checkCriticalModules();
+
+            // 7. Vue par défaut
             this.switchToView('pads');
 
             this.isInitialized = true;
             this.notifyLog('Application initialisée', 'system');
+            if (window.Debug) window.Debug.initSuccess();
 
         } catch (error) {
+            if (window.Debug) window.Debug.initError(error);
             this.handleInitError(error);
         }
+    },
+
+    // ===== VÉRIFICATION MODULES =====
+    checkCriticalModules() {
+        if (window.Debug) window.Debug.checkCriticalModules();
     },
 
     // ===== GESTION MODULES =====
@@ -44,12 +55,15 @@ const App = {
             try {
                 window[moduleName].init();
                 this.modules[moduleName] = window[moduleName];
+                if (window.Debug) window.Debug.moduleInit(moduleName, true);
                 return true;
             } catch (error) {
+                if (window.Debug) window.Debug.moduleInit(moduleName, false);
                 this.notifyLog(`Erreur init ${moduleName}: ${error.message}`, 'error');
                 return false;
             }
         } else {
+            if (window.Debug) window.Debug.moduleInit(moduleName, false);
             this.notifyLog(`Module ${moduleName} non trouvé`, 'warning');
             return false;
         }
@@ -70,6 +84,7 @@ const App = {
         const connected = await window.MIDI.connect();
         this.modules.MIDI = window.MIDI;
         
+        if (window.Debug) window.Debug.midiStatus(connected);
         return connected;
     },
 
@@ -90,28 +105,26 @@ const App = {
         if (panelConfig) {
             panelConfig.innerHTML = `<div class="config-content" id="configContent"></div>`;
         }
+        
+        if (window.Debug) window.Debug.checkArchitecture();
     },
 
     // ===== GESTIONNAIRE VUES =====
     switchToView(viewId) {
         if (this.currentView === viewId) return;
         
+        if (window.Debug) window.Debug.viewSwitch(viewId);
         this.currentView = viewId;
 
-        // Masquer toutes les vues
-        document.querySelectorAll('.view-panel').forEach(panel => {
-            panel.classList.remove('active');
-        });
-
-        // Afficher vue active
-        const activeView = document.getElementById(`${viewId}View`);
-        if (activeView) {
-            activeView.classList.add('active');
+        // Afficher contenu
+        if (window.ContentZone) {
+            window.ContentZone.showView(viewId);
         }
 
-        // Charger contenu et config
-        this.loadViewContent(viewId);
-        this.loadViewConfig(viewId);
+        // Afficher config panel
+        if (window.PanelControl) {
+            window.PanelControl.showConfig(viewId);
+        }
         
         this.notifyLog(`Vue switched: ${viewId}`, 'info');
     },
@@ -137,18 +150,25 @@ const App = {
 
         if (contentModule && contentModule.create) {
             try {
-                viewContainer.innerHTML = contentModule.create();
+                const htmlContent = contentModule.create();
+                if (window.Debug) window.Debug.contentLoad(viewId, true, htmlContent.length);
+                
+                viewContainer.innerHTML = htmlContent;
                 
                 // Initialiser module après insertion DOM
                 if (contentModule.init) {
                     contentModule.init();
                     moduleInitialized = true;
+                    if (window.Debug) window.Debug.contentInit(viewId, true);
+                } else {
+                    if (window.Debug) window.Debug.contentInit(viewId, false);
                 }
             } catch (error) {
                 this.notifyLog(`Erreur chargement ${viewId}Content: ${error.message}`, 'error');
                 viewContainer.innerHTML = `<div class="error-placeholder">Module ${viewId} indisponible</div>`;
             }
         } else {
+            if (window.Debug) window.Debug.contentLoad(viewId, false, 0);
             this.notifyLog(`Module ${viewId}Content non trouvé`, 'warning');
             viewContainer.innerHTML = `<div class="placeholder">Module ${viewId} en développement</div>`;
         }
@@ -182,13 +202,22 @@ const App = {
                 // Initialiser config après insertion DOM
                 if (configModule.init) {
                     configModule.init();
+                    if (window.Debug) window.Debug.configLoad(viewId, true);
                 }
             } catch (error) {
                 this.notifyLog(`Erreur config ${viewId}: ${error.message}`, 'error');
                 configContent.innerHTML = '';
             }
         } else {
+            if (window.Debug) window.Debug.configLoad(viewId, false);
             configContent.innerHTML = '';
+        }
+    },
+
+    // ===== DEBUG PUBLIC METHOD =====
+    debugCurrentView() {
+        if (window.Debug) {
+            window.Debug.debugViewContent(this.currentView);
         }
     },
 
@@ -218,6 +247,8 @@ const App = {
     },
 
     handleMIDIConnectionChange(connected) {
+        if (window.Debug) window.Debug.midiStatus(connected);
+        
         // Notifier modules concernés
         if (this.currentView === 'pads' && window.PadsContent) {
             // PadsContent peut réagir au changement connexion

@@ -79,6 +79,13 @@ const GroupsMode = {
             const groupBtn = e.target.closest('.group-btn');
             if (groupBtn) {
                 const groupId = parseInt(groupBtn.dataset.group);
+                
+                // SÉCURITÉ MODE 32 STEPS - Désactiver clics groupes 1&2
+                if (this.isGroupDisabledForSafety(groupId)) {
+                    e.preventDefault();
+                    return; // Bloquer le clic pour éviter conflits
+                }
+                
                 this.selectGroup(groupId);
             }
         });
@@ -100,6 +107,26 @@ const GroupsMode = {
             const { groupId, color } = event.detail;
             this.handleGroupColorRequest(groupId, color);
         });
+    },
+
+    // ===== MAPPING PADS CONTRÔLE PAR GROUPE =====
+    getControlPadsForGroup(groupId) {
+        const controlMappings = {
+            1: { 25: null, 26: 'green', 27: 'yellow', 28: 'red' }, // Groupe 1
+            2: { 29: null, 30: 'green', 31: 'yellow', 32: 'red' }, // Groupe 2  
+            5: { 25: null, 26: 'green', 27: 'yellow', 28: 'red' }  // Groupe 5 (32 steps) = comme groupe 1
+        };
+        
+        return controlMappings[groupId] || {};
+    },
+
+    // ===== SÉCURITÉ MODE 32 STEPS =====
+    isGroupDisabledForSafety(groupId) {
+        // Désactiver groupes 1 et 2 si séquenceur 32 steps actif
+        // Pour éviter conflits avec groupe 5 qui utilise leurs emplacements
+        return this.sequencerToggle && 
+               this.sequencerSteps === 32 && 
+               (groupId === 1 || groupId === 2);
     },
 
     // ===== SÉLECTION GROUPE =====
@@ -147,6 +174,15 @@ const GroupsMode = {
             // Envoyer config séquenceur à pads-content
             this.sendSequencerConfig(activeGroup);
             
+            // Activer boutons contrôles séquenceur
+            const controlPads = this.getControlPadsForGroup(activeGroup);
+            window.dispatchEvent(new CustomEvent('sequencer-controls-active', {
+                detail: { 
+                    active: true,
+                    controlButtons: controlPads
+                }
+            }));
+            
         } else {
             // Nettoyer highlights séquenceur
             window.dispatchEvent(new CustomEvent('clear-sequencer-highlights'));
@@ -156,6 +192,11 @@ const GroupsMode = {
             
             // Désactiver séquenceur dans pads-content
             window.dispatchEvent(new CustomEvent('sequencer-deactivated'));
+            
+            // Désactiver boutons contrôles séquenceur
+            window.dispatchEvent(new CustomEvent('sequencer-controls-active', {
+                detail: { active: false }
+            }));
         }
         
         this.updateGroupButtons();
@@ -247,6 +288,11 @@ const GroupsMode = {
             // Mode 32 steps indication
             const is32Mode = this.sequencerSteps === 32 && this.sequencerToggle;
             btn.classList.toggle('mode-32', is32Mode);
+            
+            // SÉCURITÉ - Désactiver visuellement boutons 1&2 en mode 32
+            const isDisabledForSafety = this.isGroupDisabledForSafety(groupId);
+            btn.classList.toggle('disabled-safety', isDisabledForSafety);
+            btn.style.pointerEvents = isDisabledForSafety ? 'none' : 'auto';
         });
     },
 
@@ -291,7 +337,9 @@ const GroupsMode = {
             sequencerToggle: this.sequencerToggle,
             sequencerSteps: this.sequencerSteps,
             activeSequencerGroup: this.getActiveSequencerGroup(),
-            colorAllowedForSelected: this.isColorAllowed(this.selectedGroup)
+            colorAllowedForSelected: this.isColorAllowed(this.selectedGroup),
+            group1DisabledForSafety: this.isGroupDisabledForSafety(1),
+            group2DisabledForSafety: this.isGroupDisabledForSafety(2)
         };
     }
 };

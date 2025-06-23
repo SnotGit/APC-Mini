@@ -57,3 +57,12 @@
     border-color: #ffffff;
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* ===== SÉCURITÉ MODE 32 - BOUTONS DÉSACTIVÉS ===== */
+.group-btn.disabled-safety {
+    pointer-events: none;
+    border-color: #666 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #ccc !important;
+    box-shadow: none !important;
+}
