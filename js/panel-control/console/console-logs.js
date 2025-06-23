@@ -9,6 +9,11 @@ const ConsoleLogs = {
         
         this.setupEventListeners();
         this.isInitialized = true;
+        
+        // Log d'initialisation du système de logs
+        setTimeout(() => {
+            this.sendToConsole('Système de logs initialisé', 'system');
+        }, 100);
     },
 
     // ===== ÉVÉNEMENTS =====
@@ -84,21 +89,21 @@ const ConsoleLogs = {
                 break;
 
             default:
-                console.warn('Type de log non reconnu:', type);
+                this.sendToConsole(`Log type inconnu: ${type}`, 'warning');
         }
     },
 
     // ===== LOGS GROUPES =====
     logGroupSelected(groupId, displayGroupId, padCount) {
         if (groupId !== displayGroupId) {
-            this.sendToConsole(`Groupe ${groupId} sélectionné (${padCount} pads)`, 'success');
+            this.sendToConsole(`Groupe ${displayGroupId} → Groupe ${groupId} (${padCount} pads)`, 'success');
         } else {
             this.sendToConsole(`Groupe ${displayGroupId} sélectionné (${padCount} pads)`, 'success');
         }
     },
 
     logGroupDeselected() {
-        this.sendToConsole('Sélection annulée', 'info');
+        this.sendToConsole('Sélection groupe annulée', 'info');
     },
 
     logGroupMapping(displayGroupId, effectiveGroupId, reason) {
@@ -151,10 +156,10 @@ const ConsoleLogs = {
     logSequencerRestriction(reason, details = {}) {
         switch(reason) {
             case 'switch-32-blocked':
-                this.sendToConsole('Switch 32 bloqué: Groupes 1 ou 2 ont des assignations couleurs', 'warning');
+                this.sendToConsole('Switch 32 bloqué: Groupes 1 ou 2 assignés', 'warning');
                 break;
             case 'sequencer-active':
-                this.sendToConsole('Séquenceur actif', 'warning');
+                this.sendToConsole('Zone séquenceur active', 'warning');
                 break;
             default:
                 this.sendToConsole(`Restriction: ${reason}`, 'warning');
@@ -171,7 +176,7 @@ const ConsoleLogs = {
             } else if (message.includes('déconnecté')) {
                 this.sendToConsole('APC Mini déconnecté', 'error');
             } else if (message.includes('non supportée')) {
-                this.sendToConsole('Incompatibilité matérielle', 'error');
+                this.sendToConsole('Web MIDI non supporté', 'error');
             } else {
                 this.sendToConsole(message, 'error');
             }

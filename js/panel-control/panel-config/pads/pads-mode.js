@@ -46,7 +46,7 @@ const PadsMode = {
         this.selectedPad = null;
         const infoContent = document.getElementById('padInfoContent');
         if (infoContent) infoContent.textContent = 'NUMERO PAD / NOTE PAD';
-        window.dispatchEvent(new CustomEvent('clear-selection'));
+        // CORRECTION: Suppression de l'émission de 'clear-selection' pour éviter la boucle infinie
     },
 
     // ===== VALIDATION =====

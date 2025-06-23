@@ -72,7 +72,25 @@ const GroupsMode = {
     handleGroupClick(displayId) {
         const effectiveId = this.getEffectiveGroupId(displayId);
         
+        // Log sélection via système centralisé
+        if (window.ConsoleLogs) {
+            if (effectiveId !== displayId) {
+                window.ConsoleLogs.logGroup('mapping', { 
+                    displayGroupId: displayId, 
+                    effectiveGroupId: effectiveId, 
+                    reason: 'conflit contrôles' 
+                });
+            }
+        }
+        
         if (!this.isGroupSelectable(effectiveId, displayId)) {
+            // Log blocage
+            if (window.ConsoleLogs) {
+                window.ConsoleLogs.logGroup('blocked', { 
+                    groupId: displayId, 
+                    reason: this.getBlockageReason(effectiveId, displayId) 
+                });
+            }
             return;
         }
 
@@ -88,18 +106,40 @@ const GroupsMode = {
         this.displayGroupId = displayId;
         const group = this.groups[effectiveId];
         
+        // Log sélection
+        if (window.ConsoleLogs) {
+            window.ConsoleLogs.logGroup('selected', { 
+                groupId: effectiveId, 
+                displayGroupId: displayId, 
+                padCount: group.pads.length 
+            });
+        }
+        
         window.dispatchEvent(new CustomEvent('group-selected', {
-            detail: { groupId: effectiveId, displayGroupId: displayId, groupPads: group.pads, hasSequencer: group.hasSequencer, sequencerEnabled: false }
+            detail: { 
+                groupId: effectiveId, 
+                displayGroupId: displayId, 
+                groupPads: group.pads, 
+                hasSequencer: group.hasSequencer, 
+                sequencerEnabled: false 
+            }
         }));
         
         if (this.activeSequencerGroup !== effectiveId) {
-            window.dispatchEvent(new CustomEvent('highlight-group', { detail: { groupPads: group.pads, groupId: effectiveId } }));
+            window.dispatchEvent(new CustomEvent('highlight-group', { 
+                detail: { groupPads: group.pads, groupId: effectiveId } 
+            }));
         }
         
         this.updateInterface();
     },
 
     deselectGroup() {
+        // Log déselection
+        if (window.ConsoleLogs) {
+            window.ConsoleLogs.logGroup('deselected', {});
+        }
+        
         this.selectedGroup = null;
         this.displayGroupId = null;
         this.updateInterface();
@@ -109,27 +149,54 @@ const GroupsMode = {
     // ===== GESTION SÉQUENCEUR =====
     handleSequencerToggle(enabled, groupId) {
         this.sequencerToggle = enabled;
-        enabled ? this.activateSequencerForGroup(this.getSequencerTargetGroup()) : this.deactivateSequencer();
+        
+        if (enabled) {
+            const targetGroup = this.getSequencerTargetGroup();
+            this.activateSequencerForGroup(targetGroup);
+        } else {
+            this.deactivateSequencer();
+        }
+        
         this.updateInterface();
     },
 
     handleStepsChange(steps) {
         const wasActive = this.sequencerToggle;
         this.sequencerSteps = steps;
+        
         if (wasActive) {
             this.deactivateSequencer();
             this.activateSequencerForGroup(this.getSequencerTargetGroup());
         }
+        
         this.updateInterface();
     },
 
     getSequencerTargetGroup() {
-        return this.sequencerSteps === 32 ? 5 : (this.selectedGroup && this.groups[this.selectedGroup].hasSequencer ? this.selectedGroup : 1);
+        if (this.sequencerSteps === 32) {
+            return 5;
+        }
+        
+        // Si un groupe avec séquenceur est sélectionné, l'utiliser
+        if (this.selectedGroup && this.groups[this.selectedGroup]?.hasSequencer) {
+            return this.selectedGroup;
+        }
+        
+        // Sinon, utiliser groupe 1 par défaut
+        return 1;
     },
 
     activateSequencerForGroup(groupId) {
         this.activeSequencerGroup = groupId;
         const group = this.groups[groupId];
+        
+        // Log activation séquenceur
+        if (window.ConsoleLogs) {
+            window.ConsoleLogs.logSequencer('activated', { 
+                groupId, 
+                padCount: group.pads.length 
+            });
+        }
         
         window.dispatchEvent(new CustomEvent('sequencer-activate', {
             detail: { 
@@ -150,9 +217,26 @@ const GroupsMode = {
     // ===== ASSIGNATION COULEUR =====
     handleGroupColorRequest(groupId, color) {
         if (this.isColorAllowed(groupId)) {
+            // Log assignation
+            if (window.ConsoleLogs) {
+                window.ConsoleLogs.logGroup('assigned', { 
+                    groupId, 
+                    color: color || 'effacé', 
+                    padCount: this.groups[groupId]?.pads.length || 0 
+                });
+            }
+            
             window.dispatchEvent(new CustomEvent('apply-group-color', {
                 detail: { groupPads: this.groups[groupId].pads, color, groupId }
             }));
+        } else {
+            // Log blocage assignation
+            if (window.ConsoleLogs) {
+                window.ConsoleLogs.logGroup('assignment-blocked', { 
+                    groupId, 
+                    reason: 'séquenceur actif' 
+                });
+            }
         }
     },
 
@@ -162,7 +246,8 @@ const GroupsMode = {
 
     // ===== PROTECTION =====
     isGroupSelectable(groupId, displayId) {
-        return !(this.sequencerSteps === 32 && (displayId === 1 || displayId === 2)) && !this.hasIndividualPadsInZone(groupId);
+        return !(this.sequencerSteps === 32 && (displayId === 1 || displayId === 2)) && 
+               !this.hasIndividualPadsInZone(groupId);
     },
 
     hasIndividualPadsInZone(groupId) {
@@ -172,6 +257,16 @@ const GroupsMode = {
             const isGroupAssigned = window.PadsContent.groupAssignments?.[groupId];
             return padColor && !isGroupAssigned;
         });
+    },
+
+    getBlockageReason(effectiveId, displayId) {
+        if (this.sequencerSteps === 32 && (displayId === 1 || displayId === 2)) {
+            return 'mode 32 steps actif';
+        }
+        if (this.hasIndividualPadsInZone(effectiveId)) {
+            return 'pads individuels dans la zone';
+        }
+        return 'non disponible';
     },
 
     // ===== INTERFACE =====

@@ -45,6 +45,7 @@ const SequencerMode = {
         });
 
         window.addEventListener('group-selected', (e) => this.updateSequencerAvailability(e.detail.groupId, e.detail.hasSequencer));
+        window.addEventListener('clear-selection', () => this.handleNoGroupSelected());
         window.addEventListener('group-assigned', () => this.updateSwitchRestrictions());
         window.addEventListener('pad-assigned', () => this.updateSwitchRestrictions());
     },
@@ -52,6 +53,12 @@ const SequencerMode = {
     // ===== TOGGLE SÉQUENCEUR =====
     toggleSequencer(enabled) {
         this.enabled = enabled;
+        
+        // Logs via système centralisé
+        if (window.ConsoleLogs) {
+            window.ConsoleLogs.logSequencer('toggle', { enabled: this.enabled });
+        }
+
         window.dispatchEvent(new CustomEvent('sequencer-toggle-changed', {
             detail: { enabled: this.enabled, groupId: this.currentGroupId, steps: this.steps }
         }));
@@ -63,10 +70,24 @@ const SequencerMode = {
         if (steps === 32 && !this.canSwitch32()) {
             const stepsToggle = document.getElementById('stepsToggle');
             if (stepsToggle) stepsToggle.checked = false;
+            
+            // Log restriction
+            if (window.ConsoleLogs) {
+                window.ConsoleLogs.logSequencer('restriction', { 
+                    reason: 'switch-32-blocked',
+                    details: this.getRestrictionDetails()
+                });
+            }
             return;
         }
 
         this.steps = steps;
+        
+        // Logs
+        if (window.ConsoleLogs) {
+            window.ConsoleLogs.logSequencer('steps', { steps: this.steps });
+        }
+
         window.dispatchEvent(new CustomEvent('sequencer-steps-changed', {
             detail: { steps: this.steps, groupId: this.currentGroupId, enabled: this.enabled }
         }));
@@ -108,14 +129,26 @@ const SequencerMode = {
         
         if (toggle) {
             toggle.disabled = !hasSequencer;
-            if (!hasSequencer) {
-                toggle.checked = false;
-                this.enabled = false;
-                this.toggleSequencer(false);
-            }
+            // CORRECTION : Ne pas forcer disabled si pas de séquenceur, laisser l'utilisateur
+            // mais empêcher l'activation via la logique métier
         }
         
         this.updateSwitchRestrictions();
+        this.updateInterface();
+    },
+
+    // ===== NOUVELLE MÉTHODE : GÉRER AUCUN GROUPE SÉLECTIONNÉ =====
+    handleNoGroupSelected() {
+        // Quand aucun groupe n'est sélectionné, garder le toggle disponible
+        // mais utiliser un groupe par défaut pour l'activation
+        this.currentGroupId = null;
+        const toggle = document.getElementById('sequencerToggle');
+        
+        if (toggle) {
+            // CORRECTION : Laisser le toggle disponible même sans sélection
+            toggle.disabled = false;
+        }
+        
         this.updateInterface();
     },
 
@@ -126,7 +159,9 @@ const SequencerMode = {
         const stepsToggle = document.getElementById('stepsToggle');
         
         if (toggle && stepsSwitch) {
-            stepsSwitch.style.display = this.enabled && !toggle.disabled ? 'flex' : 'none';
+            // CORRECTION : Afficher switch si enabled même sans groupe sélectionné
+            stepsSwitch.style.display = this.enabled ? 'flex' : 'none';
+            
             if (stepsToggle) {
                 stepsToggle.checked = this.steps === 32;
                 stepsToggle.classList.toggle('restricted', !this.canSwitch32());
@@ -140,6 +175,13 @@ const SequencerMode = {
             sequencerSection.classList.toggle('steps-32', this.steps === 32);
             sequencerSection.classList.toggle('switch-restricted', !this.canSwitch32());
         }
+    },
+
+    // ===== MÉTHODE CORRECTION ÉTAT =====
+    getDefaultGroupForSequencer() {
+        // Si pas de groupe sélectionné mais séquenceur activé, utiliser groupe 1 par défaut
+        if (this.steps === 32) return 5;
+        return this.currentGroupId || 1;
     },
 
     // ===== API PUBLIQUE =====
@@ -160,6 +202,14 @@ const SequencerMode = {
         return null;
     },
 
+    getRestrictionDetails() {
+        return {
+            group1Color: this.getGroupAssignedColor(1),
+            group2Color: this.getGroupAssignedColor(2),
+            canSwitch32: this.canSwitch32()
+        };
+    },
+
     // ===== UTILITAIRES =====
     reset() {
         this.enabled = false;
@@ -167,7 +217,10 @@ const SequencerMode = {
         this.currentGroupId = null;
         const toggle = document.getElementById('sequencerToggle');
         const stepsToggle = document.getElementById('stepsToggle');
-        if (toggle) toggle.checked = false;
+        if (toggle) {
+            toggle.checked = false;
+            toggle.disabled = false; // CORRECTION : Ne pas laisser disabled après reset
+        }
         if (stepsToggle) stepsToggle.checked = false;
         this.updateInterface();
     },
