@@ -35,7 +35,6 @@ const App = {
             this.activateDefaultView();
 
             this.isInitialized = true;
-            this.notifyLog('Application initialisée', 'system');
             if (window.Debug) window.Debug.initSuccess();
 
         } catch (error) {
@@ -79,7 +78,7 @@ const App = {
 
     async initMIDI() {
         if (!window.MIDI) {
-            this.notifyLog('Module MIDI non trouvé', 'error');
+            this.notifyLog('Connecter Apc Mini', 'error');
             return false;
         }
 

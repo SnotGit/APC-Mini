@@ -13,7 +13,6 @@ const Console = {
         this.setupEventListeners();
         
         this.isInitialized = true;
-        this.addLog('Console initialisée', 'system');
     },
 
     createConsoleInterface() {
@@ -36,7 +35,7 @@ const Console = {
                 <div class="console-content" id="consoleContent">
                     <!-- Logs dynamiques -->
                 </div>
-                
+
             </div>
         `;
     },
