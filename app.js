@@ -13,7 +13,7 @@ const App = {
         try {
             if (window.Debug) window.Debug.initStart();
             
-            // 1. Console en premier (logging system)
+            // 1. Console en premier
             this.initModule('Console');
             
             // 2. Configuration system
@@ -28,10 +28,10 @@ const App = {
             // 4. Communication inter-modules
             this.setupGlobalCommunication();
 
-            // 6. Vérifier modules critiques
+            // 5. Vérifier modules critiques
             this.checkCriticalModules();
 
-            // 7. Vue par défaut
+            // 6. Vue par défaut
             this.switchToView('pads');
 
             this.isInitialized = true;
@@ -75,38 +75,15 @@ const App = {
             return false;
         }
 
-        // Vérifier support Web MIDI API
         if (!window.MIDI.init()) {
             return false;
         }
 
-        // Tentative connexion APC Mini
         const connected = await window.MIDI.connect();
         this.modules.MIDI = window.MIDI;
         
         if (window.Debug) window.Debug.midiStatus(connected);
         return connected;
-    },
-
-    // ===== ARCHITECTURE VUES =====
-    initViewArchitecture() {
-        // Préparer content-zone
-        const contentZone = document.querySelector('.content-zone');
-        if (contentZone) {
-            contentZone.innerHTML = `
-                <div class="view-panel" id="padsView"></div>
-                <div class="view-panel" id="sequencerView"></div>
-                <div class="view-panel" id="exportView"></div>
-            `;
-        }
-
-        // Préparer panel-config
-        const panelConfig = document.querySelector('.panel-config');
-        if (panelConfig) {
-            panelConfig.innerHTML = `<div class="config-content" id="configContent"></div>`;
-        }
-        
-        if (window.Debug) window.Debug.checkArchitecture();
     },
 
     // ===== GESTIONNAIRE VUES =====
@@ -127,91 +104,6 @@ const App = {
         }
         
         this.notifyLog(`Vue switched: ${viewId}`, 'info');
-    },
-
-    loadViewContent(viewId) {
-        const viewContainer = document.getElementById(`${viewId}View`);
-        if (!viewContainer) return;
-
-        let contentModule = null;
-        let moduleInitialized = false;
-
-        switch (viewId) {
-            case 'pads':
-                contentModule = window.PadsContent;
-                break;
-            case 'sequencer':
-                contentModule = window.SequencerContent;
-                break;
-            case 'export':
-                contentModule = window.ExportContent;
-                break;
-        }
-
-        if (contentModule && contentModule.create) {
-            try {
-                const htmlContent = contentModule.create();
-                if (window.Debug) window.Debug.contentLoad(viewId, true, htmlContent.length);
-                
-                viewContainer.innerHTML = htmlContent;
-                
-                // Initialiser module après insertion DOM
-                if (contentModule.init) {
-                    contentModule.init();
-                    moduleInitialized = true;
-                    if (window.Debug) window.Debug.contentInit(viewId, true);
-                } else {
-                    if (window.Debug) window.Debug.contentInit(viewId, false);
-                }
-            } catch (error) {
-                this.notifyLog(`Erreur chargement ${viewId}Content: ${error.message}`, 'error');
-                viewContainer.innerHTML = `<div class="error-placeholder">Module ${viewId} indisponible</div>`;
-            }
-        } else {
-            if (window.Debug) window.Debug.contentLoad(viewId, false, 0);
-            this.notifyLog(`Module ${viewId}Content non trouvé`, 'warning');
-            viewContainer.innerHTML = `<div class="placeholder">Module ${viewId} en développement</div>`;
-        }
-
-        return moduleInitialized;
-    },
-
-    loadViewConfig(viewId) {
-        const configContent = document.getElementById('configContent');
-        if (!configContent) return;
-
-        let configModule = null;
-
-        switch (viewId) {
-            case 'pads':
-                configModule = window.PadsConfig;
-                break;
-            case 'sequencer':
-                configModule = window.SequencerConfig;
-                break;
-            case 'export':
-                // Export n'a pas de config panel
-                configContent.innerHTML = '';
-                return;
-        }
-
-        if (configModule && configModule.create) {
-            try {
-                configContent.innerHTML = configModule.create();
-                
-                // Initialiser config après insertion DOM
-                if (configModule.init) {
-                    configModule.init();
-                    if (window.Debug) window.Debug.configLoad(viewId, true);
-                }
-            } catch (error) {
-                this.notifyLog(`Erreur config ${viewId}: ${error.message}`, 'error');
-                configContent.innerHTML = '';
-            }
-        } else {
-            if (window.Debug) window.Debug.configLoad(viewId, false);
-            configContent.innerHTML = '';
-        }
     },
 
     // ===== DEBUG PUBLIC METHOD =====
@@ -249,7 +141,7 @@ const App = {
     handleMIDIConnectionChange(connected) {
         if (window.Debug) window.Debug.midiStatus(connected);
         
-        // Notifier modules concernés
+        // Notifier modules concernés selon vue active
         if (this.currentView === 'pads' && window.PadsContent) {
             // PadsContent peut réagir au changement connexion
         }
@@ -369,7 +261,6 @@ const App = {
 
     // ===== NOTIFICATIONS =====
     notifyLog(message, type = 'info') {
-        // Déléguer à console.js uniquement
         window.dispatchEvent(new CustomEvent('console-log', {
             detail: { message, type }
         }));

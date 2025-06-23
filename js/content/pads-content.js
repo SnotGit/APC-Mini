@@ -127,6 +127,14 @@ const PadsContent = {
             this.deactivateSequencer();
         });
 
+        // === BOUTONS CONTRÔLES SÉQUENCEUR ===
+        
+        // Boutons contrôles séquenceur depuis groups-mode
+        window.addEventListener('sequencer-controls-active', (event) => {
+            const { active, controlButtons } = event.detail;
+            this.handleSequencerControls(active, controlButtons);
+        });
+
         // Clear sélection
         window.addEventListener('clear-selection', () => {
             this.clearSelection();
@@ -293,11 +301,60 @@ const PadsContent = {
     deactivateSequencer() {
         this.sequencerConfig.enabled = false;
         this.clearSequencerHighlights();
+        this.clearControlPads();
         
         // Notifier sequencer-content
         window.dispatchEvent(new CustomEvent('sequencer-config-received', {
             detail: { enabled: false }
         }));
+    },
+
+    // ===== BOUTONS CONTRÔLES SÉQUENCEUR =====
+    handleSequencerControls(active, controlButtons) {
+        if (active) {
+            // Appliquer couleurs et highlights aux pads contrôle
+            Object.entries(controlButtons).forEach(([padNumber, color]) => {
+                const pad = document.querySelector(`[data-pad-number="${padNumber}"]`);
+                if (!pad) return;
+
+                if (color) {
+                    // Appliquer couleur (vert, jaune, rouge)
+                    this.padColors[padNumber] = color;
+                    this.updatePadVisual(parseInt(padNumber));
+                    this.sendPadColorToMIDI(parseInt(padNumber), color);
+                } else {
+                    // Pad Play (null) = highlight seulement
+                    pad.classList.add('sequencer-highlight');
+                }
+                
+                // Ajouter classe control-pad-active (désactive clics)
+                pad.classList.add('control-pad-active');
+            });
+        } else {
+            // Clear couleurs et highlights contrôles
+            this.clearControlPads();
+        }
+    },
+
+    clearControlPads() {
+        // Nettoyer toutes les classes control-pad-active
+        document.querySelectorAll('.pad.control-pad-active').forEach(pad => {
+            const padNumber = parseInt(pad.dataset.padNumber);
+            
+            // Retirer classe control-pad-active
+            pad.classList.remove('control-pad-active');
+            
+            // Retirer highlight
+            pad.classList.remove('sequencer-highlight');
+            
+            // Supprimer couleurs des pads contrôle (assignées par séquenceur)
+            delete this.padColors[padNumber];
+            this.updatePadVisual(padNumber);
+            this.sendPadColorToMIDI(padNumber, null);
+        });
+        
+        // Sauvegarder après suppression
+        this.savePadColors();
     },
 
     // ===== ÉTATS VISUELS =====
