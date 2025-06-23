@@ -1,12 +1,12 @@
-/* ===== PANEL CONFIG PRINCIPAL ===== */
+
 .panel-config {
-    flex: 1;
+    display: flex;
     background: #2a2a2a;
     border: 2px solid #444;
     border-radius: 12px;
     padding: 15px;
     overflow: hidden;
-    height: 60%;
+    height: 50%;
 }
 
 .config-content {

@@ -27,26 +27,21 @@
 <body>
     <main class="app-container">
 
-        <!-- HEADER → header.js/css -->
         <header class="header-container" id="headerContainer">
         </header>
 
         <div class="main-container">
 
-            <!-- CONTENT ZONE → content-zone.js/css -->
             <div class="content-zone">
                 <!-- Vues générées dynamiquement par content-zone.js -->
             </div>
 
-            <!-- PANEL CONTROL → panel-control.js/css -->
             <aside class="panel-control" id="panelControl">
 
-                <!-- PANEL CONFIG → panel-config.js/css -->
                 <div class="panel-config" id="panelConfig">
                     <!-- Config générée dynamiquement par panel-control.js -->
                 </div>
 
-                <!-- CONSOLE → console.js/css -->
                 <div class="console-container" id="consoleContainer">
                     <!-- Console générée par console.js -->
                 </div>
@@ -57,21 +52,20 @@
 
     </main>
 
-    <!-- SCRIPTS - ORDRE IMPORTANT : modules avant app.js -->
     
-    <!-- Modules MIDI -->
+    <!-- MIDI -->
     <script src="js/midi/midi.js"></script>
     
-    <!-- Modules header -->
+    <!-- Header -->
     <script src="js/header/header.js"></script>
     
-    <!-- Modules content -->
+    <!-- Content -->
     <script src="js/content/pads-content.js"></script>
     <script src="js/content/content-zone.js"></script>
     <script src="js/content/sequencer-content.js"></script>
     <script src="js/content/export-content.js"></script>
     
-    <!-- Modules panel-config -->
+    <!-- Panels-config -->
     <script src="js/panel-control/panel-config/pads/select-mode.js"></script>
     <script src="js/panel-control/panel-config/pads/pads-mode.js"></script>
     <script src="js/panel-control/panel-config/pads/groups-mode.js"></script>
@@ -80,14 +74,12 @@
     <script src="js/panel-control/panel-config/pads/pads-config.js"></script>
     <script src="js/panel-control/panel-config/sequencer/sequencer-config.js"></script>
     
-    <!-- Modules console -->
+    <!-- Console -->
     <script src="js/panel-control/console/console.js"></script>
     
-    <!-- Module panel-control principal -->
+    <!-- Panel-control principal -->
     <script src="js/panel-control/panel-control.js"></script>
     
-    <!-- Debug (à enlever en production) -->
-    <script src="debug.js"></script>
     
     <!-- APP.JS EN DERNIER -->
     <script src="app.js"></script>
