@@ -2,11 +2,12 @@ const GroupsMode = {
 
     // ===== ÉTAT =====
     selectedGroup: null,
+    displayGroupId: null,
     sequencerToggle: false,
     sequencerSteps: 16,
     isInitialized: false,
 
-    // MAPPING GROUPES
+    // MAPPING 7 GROUPES CONDITIONNELS
     groups: {
         1: { 
             name: 'GROUPE 1', 
@@ -37,6 +38,18 @@ const GroupsMode = {
             pads: [57,58,59,60,61,62,63,64,49,50,51,52,53,54,55,56,41,42,43,44,45,46,47,48,33,34,35,36,37,38,39,40],
             hasSequencer: true,
             controls: { 25: null, 26: 'green', 27: 'yellow', 28: 'red' }
+        },
+        6: {
+            name: 'GROUPE 6', 
+            pads: [17,18,19,20,9,10,11,12,1,2,3,4],
+            hasSequencer: false,
+            controls: {}
+        },
+        7: {
+            name: 'GROUPE 7',
+            pads: [21,22,23,24,13,14,15,16,5,6,7,8],
+            hasSequencer: false,
+            controls: {}
         }
     },
 
@@ -70,13 +83,46 @@ const GroupsMode = {
         this.isInitialized = true;
     },
 
+    // ===== MAPPING CONDITIONNEL =====
+    getEffectiveGroupId(displayGroupId) {
+        if (displayGroupId === 3) {
+            if (this.hasControlsConflict(3)) {
+                return 6;
+            }
+            return 3;
+        }
+        
+        if (displayGroupId === 4) {
+            if (this.hasControlsConflict(4)) {
+                return 7;
+            }
+            return 4;
+        }
+        
+        return displayGroupId;
+    },
+
+    hasControlsConflict(displayGroupId) {
+        if (displayGroupId === 3) {
+            const activeSequencer = this.getActiveSequencerGroup();
+            return activeSequencer === 1 || activeSequencer === 5;
+        }
+        
+        if (displayGroupId === 4) {
+            const activeSequencer = this.getActiveSequencerGroup();
+            return activeSequencer === 2;
+        }
+        
+        return false;
+    },
+
     // ===== ÉVÉNEMENTS =====
     setupEventListeners() {
         document.addEventListener('click', (e) => {
             const groupBtn = e.target.closest('.group-btn');
             if (groupBtn && !groupBtn.disabled) {
-                const groupId = parseInt(groupBtn.dataset.group);
-                this.handleGroupClick(groupId);
+                const displayGroupId = parseInt(groupBtn.dataset.group);
+                this.handleGroupClick(displayGroupId);
             }
         });
 
@@ -105,40 +151,46 @@ const GroupsMode = {
     },
 
     // ===== GESTION CLICS GROUPES =====
-    handleGroupClick(groupId) {
-        if (!this.isGroupSelectable(groupId)) {
+    handleGroupClick(displayGroupId) {
+        const effectiveGroupId = this.getEffectiveGroupId(displayGroupId);
+        
+        if (!this.isGroupSelectable(effectiveGroupId)) {
             return;
         }
 
-        if (this.selectedGroup === groupId) {
-            if (this.hasGroupAssignments(groupId)) {
-                this.selectGroup(groupId);
+        if (this.selectedGroup === effectiveGroupId) {
+            if (this.hasGroupAssignments(effectiveGroupId)) {
+                this.selectGroup(effectiveGroupId, displayGroupId);
             } else {
                 this.deselectGroup();
             }
         } else {
-            this.selectGroup(groupId);
+            this.selectGroup(effectiveGroupId, displayGroupId);
         }
     },
 
-    selectGroup(groupId) {
-        this.selectedGroup = groupId;
+    selectGroup(effectiveGroupId, displayGroupId) {
+        this.selectedGroup = effectiveGroupId;
+        this.displayGroupId = displayGroupId;
         this.updateInterface();
+        
+        const group = this.groups[effectiveGroupId];
         
         window.dispatchEvent(new CustomEvent('group-selected', {
             detail: { 
-                groupId,
-                groupPads: this.getEffectivePads(groupId),
-                hasSequencer: this.groups[groupId].hasSequencer,
-                sequencerEnabled: this.sequencerToggle && this.isSequencerActiveForGroup(groupId)
+                groupId: effectiveGroupId,
+                displayGroupId: displayGroupId,
+                groupPads: group.pads,
+                hasSequencer: group.hasSequencer,
+                sequencerEnabled: this.sequencerToggle && this.isSequencerActiveForGroup(effectiveGroupId)
             }
         }));
         
-        if (!this.sequencerToggle || this.isSequencerActiveForGroup(groupId)) {
+        if (!this.sequencerToggle || this.isSequencerActiveForGroup(effectiveGroupId)) {
             window.dispatchEvent(new CustomEvent('highlight-group', {
                 detail: { 
-                    groupPads: this.getEffectivePads(groupId),
-                    groupId
+                    groupPads: group.pads,
+                    groupId: effectiveGroupId
                 }
             }));
         }
@@ -146,6 +198,7 @@ const GroupsMode = {
 
     deselectGroup() {
         this.selectedGroup = null;
+        this.displayGroupId = null;
         this.updateInterface();
         
         window.dispatchEvent(new CustomEvent('clear-selection'));
@@ -177,6 +230,13 @@ const GroupsMode = {
         }
         
         this.updateInterface();
+    },
+
+    canSwitch32() {
+        const group1Assigned = this.getGroupAssignedColor(1);
+        const group2Assigned = this.getGroupAssignedColor(2);
+        
+        return !group1Assigned && !group2Assigned;
     },
 
     // ===== SÉQUENCEUR ACTIVATION/DÉSACTIVATION =====
@@ -234,26 +294,6 @@ const GroupsMode = {
         }
     },
 
-    getEffectivePads(groupId) {
-        const allPads = this.groups[groupId].pads;
-        const occupiedControls = this.getOccupiedControlPads();
-        return allPads.filter(pad => !occupiedControls.includes(pad));
-    },
-
-    getAvailablePadsForGroup(groupId) {
-        return this.getEffectivePads(groupId);
-    },
-
-    getOccupiedControlPads() {
-        if (!this.sequencerToggle) return [];
-        
-        const activeGroup = this.getActiveSequencerGroup();
-        if (!activeGroup) return [];
-        
-        const controls = this.groups[activeGroup].controls;
-        return Object.keys(controls).map(Number);
-    },
-
     isSequencerActiveForGroup(groupId) {
         return this.sequencerToggle && this.getActiveSequencerGroup() === groupId;
     },
@@ -261,9 +301,11 @@ const GroupsMode = {
     // ===== ASSIGNATION COULEUR GROUPE =====
     handleGroupColorRequest(groupId, color) {
         if (this.isColorAllowed(groupId)) {
+            const group = this.groups[groupId];
+            
             window.dispatchEvent(new CustomEvent('apply-group-color', {
                 detail: { 
-                    groupPads: this.getEffectivePads(groupId),
+                    groupPads: group.pads,
                     color,
                     groupId 
                 }
@@ -279,38 +321,7 @@ const GroupsMode = {
         return true;
     },
 
-    // ===== INTERFACE =====
-    updateInterface() {
-        document.querySelectorAll('.group-btn').forEach(btn => {
-            const groupId = parseInt(btn.dataset.group);
-            
-            btn.classList.remove('active', 'sequencer-active', 'mode-32-visual', 'assigned-green', 'assigned-yellow', 'assigned-red');
-            btn.disabled = false;
-            
-            const assignedColor = this.getGroupAssignedColor(groupId);
-            if (assignedColor) {
-                btn.classList.add(`assigned-${assignedColor}`);
-            }
-            
-            if (groupId === this.selectedGroup) {
-                btn.classList.add('active');
-            }
-            
-            if (this.sequencerToggle && groupId === this.getActiveSequencerGroup()) {
-                btn.classList.add('sequencer-active');
-            }
-            
-            if (this.sequencerSteps === 32 && (groupId === 1 || groupId === 2)) {
-                btn.classList.add('mode-32-visual');
-                btn.disabled = true;
-            } else if (!this.isGroupSelectable(groupId)) {
-                btn.disabled = true;
-                btn.classList.add('zone-conflict');
-            }
-        });
-    },
-
-    // ===== PROTECTION CROISÉE =====
+    // ===== PROTECTION CROISÉE SIMPLIFIÉE =====
     isGroupSelectable(groupId) {
         if (this.sequencerSteps === 32 && (groupId === 1 || groupId === 2)) {
             return false;
@@ -332,6 +343,38 @@ const GroupsMode = {
         });
     },
 
+    // ===== INTERFACE =====
+    updateInterface() {
+        document.querySelectorAll('.group-btn').forEach(btn => {
+            const displayGroupId = parseInt(btn.dataset.group);
+            const effectiveGroupId = this.getEffectiveGroupId(displayGroupId);
+            
+            btn.classList.remove('active', 'sequencer-active', 'mode-32-visual', 'assigned-green', 'assigned-yellow', 'assigned-red', 'zone-conflict');
+            btn.disabled = false;
+            
+            const assignedColor = this.getGroupAssignedColor(effectiveGroupId);
+            if (assignedColor) {
+                btn.classList.add(`assigned-${assignedColor}`);
+            }
+            
+            if (effectiveGroupId === this.selectedGroup) {
+                btn.classList.add('active');
+            }
+            
+            if (this.sequencerToggle && effectiveGroupId === this.getActiveSequencerGroup()) {
+                btn.classList.add('sequencer-active');
+            }
+            
+            if (this.sequencerSteps === 32 && (displayGroupId === 1 || displayGroupId === 2)) {
+                btn.classList.add('mode-32-visual');
+                btn.disabled = true;
+            } else if (!this.isGroupSelectable(effectiveGroupId)) {
+                btn.disabled = true;
+                btn.classList.add('zone-conflict');
+            }
+        });
+    },
+
     getGroupAssignedColor(groupId) {
         if (window.PadsContent && window.PadsContent.groupAssignments) {
             return window.PadsContent.groupAssignments[groupId] || null;
@@ -350,6 +393,10 @@ const GroupsMode = {
     // ===== API PUBLIQUE =====
     getSelectedGroup() {
         return this.selectedGroup;
+    },
+
+    getDisplayGroupId() {
+        return this.displayGroupId;
     },
 
     getGroupPads(groupId) {

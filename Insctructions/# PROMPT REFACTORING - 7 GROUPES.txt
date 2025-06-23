@@ -1,0 +1,229 @@
+# 🔧 PROMPT REFACTORING - 7 GROUPES CONDITIONNELS
+
+## 🎯 OBJECTIF
+Refactoriser le système de groupes pour simplifier la logique en passant de **5 groupes + conflits dynamiques** vers **7 groupes conditionnels** avec interface 4 boutons.
+
+---
+
+## 🏗️ NOUVELLE ARCHITECTURE 7 GROUPES
+
+### Mapping Groupes
+```javascript
+groups: {
+    1: { 
+        name: 'GROUPE 1', 
+        pads: [57,58,59,60,49,50,51,52,41,42,43,44,33,34,35,36], // 16 pads
+        hasSequencer: true,
+        controls: { 25: null, 26: 'green', 27: 'yellow', 28: 'red' }
+    },
+    2: { 
+        name: 'GROUPE 2', 
+        pads: [61,62,63,64,53,54,55,56,45,46,47,48,37,38,39,40], // 16 pads
+        hasSequencer: true,
+        controls: { 29: null, 30: 'green', 31: 'yellow', 32: 'red' }
+    },
+    3: { 
+        name: 'GROUPE 3', 
+        pads: [25,26,27,28,17,18,19,20,9,10,11,12,1,2,3,4], // 16 pads
+        hasSequencer: false,
+        controls: {}
+    },
+    4: { 
+        name: 'GROUPE 4', 
+        pads: [29,30,31,32,21,22,23,24,13,14,15,16,5,6,7,8], // 16 pads
+        hasSequencer: false,
+        controls: {}
+    },
+    5: {
+        name: 'GROUPE 5',
+        pads: [57,58,59,60,61,62,63,64,49,50,51,52,53,54,55,56,41,42,43,44,45,46,47,48,33,34,35,36,37,38,39,40], // 32 pads
+        hasSequencer: true,
+        controls: { 25: null, 26: 'green', 27: 'yellow', 28: 'red' }
+    },
+    6: {
+        name: 'GROUPE 6', 
+        pads: [17,18,19,20,9,10,11,12,1,2,3,4], // 12 pads (groupe 3 sans contrôles)
+        hasSequencer: false,
+        controls: {}
+    },
+    7: {
+        name: 'GROUPE 7',
+        pads: [21,22,23,24,13,14,15,16,5,6,7,8], // 12 pads (groupe 4 sans contrôles)  
+        hasSequencer: false,
+        controls: {}
+    }
+}
+```
+
+---
+
+## 🎮 INTERFACE UTILISATEUR INCHANGÉE
+
+### HTML Template (identique)
+```html
+<div class="groups-grid">
+    <button class="group-btn" data-group="1">GROUPE 1</button>
+    <button class="group-btn" data-group="2">GROUPE 2</button>
+    <button class="group-btn" data-group="3">GROUPE 3</button>
+    <button class="group-btn" data-group="4">GROUPE 4</button>
+</div>
+```
+
+### Mapping Conditionnel (NOUVEAU)
+```javascript
+getEffectiveGroupId(displayGroupId) {
+    // Interface affiche 1,2,3,4 mais mapping réel conditionnel
+    
+    if (displayGroupId === 3) {
+        // Bouton "GROUPE 3" → mappe vers groupe 6 si conflits contrôles
+        if (this.hasControlsConflict(3)) {
+            return 6; // Mapping vers 12 pads
+        }
+        return 3; // Mapping normal 16 pads
+    }
+    
+    if (displayGroupId === 4) {
+        // Bouton "GROUPE 4" → mappe vers groupe 7 si conflits contrôles  
+        if (this.hasControlsConflict(4)) {
+            return 7; // Mapping vers 12 pads
+        }
+        return 4; // Mapping normal 16 pads
+    }
+    
+    // Groupes 1,2 = mapping direct
+    return displayGroupId;
+}
+```
+
+---
+
+## ⚙️ LOGIQUE CONDITIONS
+
+### Détection Conflits Contrôles
+```javascript
+hasControlsConflict(displayGroupId) {
+    if (displayGroupId === 3) {
+        // Groupe 3 a conflit si groupe 1 ou 5 séquenceur actif
+        const activeSequencer = this.getActiveSequencerGroup();
+        return activeSequencer === 1 || activeSequencer === 5;
+    }
+    
+    if (displayGroupId === 4) {
+        // Groupe 4 a conflit si groupe 2 séquenceur actif
+        const activeSequencer = this.getActiveSequencerGroup();
+        return activeSequencer === 2;
+    }
+    
+    return false;
+}
+```
+
+### Restrictions Switch 32
+```javascript
+canSwitch32() {
+    // Switch 32 bloqué si groupes 1 ou 2 assignés
+    const group1Assigned = this.getGroupAssignedColor(1);
+    const group2Assigned = this.getGroupAssignedColor(2);
+    
+    return !group1Assigned && !group2Assigned;
+}
+```
+
+---
+
+## 🔧 MODIFICATIONS FICHIERS
+
+### 1. groups-mode.js
+
+#### Modifications requises :
+- **Ajouter groupes 6,7** dans mapping
+- **Méthode `getEffectiveGroupId()`** pour mapping conditionnel  
+- **Méthode `hasControlsConflict()`** pour détection
+- **Modifier `handleGroupClick()`** pour utiliser mapping effectif
+- **Supprimer logique conflits dynamiques** complexe
+- **Simplifier `updateInterface()`** 
+
+#### Logique clés :
+```javascript
+// Clic bouton → utiliser mapping effectif
+handleGroupClick(displayGroupId) {
+    const effectiveGroupId = this.getEffectiveGroupId(displayGroupId);
+    // Logique avec effectiveGroupId...
+}
+
+// Sélection → toujours passer IDs réels
+selectGroup(effectiveGroupId, displayGroupId) {
+    // effectiveGroupId = groupe réel (1,2,3,4,5,6,7)
+    // displayGroupId = bouton interface (1,2,3,4)
+}
+```
+
+### 2. pads-content.js
+
+#### Modifications requises :
+- **Ajouter groupes 6,7** dans `groupMappings`
+- **Supprimer logique conflits dynamiques** 
+- **Protection croisée simple** : pad individuel vs groupe 
+- **API publique** cohérente pour 7 groupes
+
+### 3. sequencer-mode.js  
+
+#### Modifications requises :
+- **Méthode `canSwitch32()`** vérification assignations groupes 1,2
+- **Disable switch** si restriction active
+- **Feedback visuel** si switch bloqué
+
+### 4. Autres modules
+
+#### pads-mode.js / pads-colors.js :
+- **Validation simplifiée** selon nouveaux groupes
+- **Suppression logique conflits** complexes
+
+---
+
+## 🎯 WORKFLOW SIMPLIFIÉ
+
+### États Groupes
+```
+GROUPE NORMAL → 16 pads, sélectionnable
+GROUPE CONFLIT → 12 pads, mapping automatique 6 ou 7  
+GROUPE SÉQUENCEUR → highlights, contrôles actifs
+GROUPE ASSIGNÉ → bordure colorée, persistant
+GROUPE MODE 32 → disabled (groupes 1,2 seulement)
+```
+
+### Communication
+```
+Interface (1,2,3,4) → Mapping (1,2,3/6,4/7) → Logic (groupes réels)
+Assignations sauvées avec IDs réels (1,2,3,4,6,7)
+Utilisateur voit toujours 4 boutons (UX inchangée)
+```
+
+---
+
+## ✅ RÉSULTAT ATTENDU
+
+### Avantages
+- **Logique simplifiée** : groupes exclusifs, pas de calculs dynamiques
+- **Code maintenable** : moins de conditions if/else
+- **États clairs** : chaque groupe = zone fixe
+- **Interface cohérente** : toujours 4 boutons visibles
+- **Debugging facile** : mapping transparent
+
+### Interface Utilisateur  
+- **Aucun changement visuel** pour l'utilisateur
+- **Boutons 3,4** changent mapping automatiquement selon contexte
+- **Assignations fluides** sans conflits complexes
+- **Persistance propre** avec IDs réels
+
+---
+
+## 🔄 ÉTAPES REFACTORING
+
+1. **groups-mode.js** → Ajouter groupes 6,7 + mapping conditionnel
+2. **pads-content.js** → Simplifier groupMappings + supprimer conflits
+3. **sequencer-mode.js** → Ajouter restriction switch 32
+4. **Tests** → Vérifier tous scénarios
+5. **Nettoyage** → Supprimer code obsolète conflits
+
+**OBJECTIF :** Même UX, logique plus simple et maintenable.

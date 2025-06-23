@@ -15,13 +15,15 @@ const PadsContent = {
     },
     isInitialized: false,
 
-    // ===== MAPPING GROUPES =====
+    // ===== MAPPING 7 GROUPES =====
     groupMappings: {
         1: [57,58,59,60,49,50,51,52,41,42,43,44,33,34,35,36],
         2: [61,62,63,64,53,54,55,56,45,46,47,48,37,38,39,40],
         3: [25,26,27,28,17,18,19,20,9,10,11,12,1,2,3,4],
         4: [29,30,31,32,21,22,23,24,13,14,15,16,5,6,7,8],
-        5: [57,58,59,60,61,62,63,64,49,50,51,52,53,54,55,56,41,42,43,44,45,46,47,48,33,34,35,36,37,38,39,40]
+        5: [57,58,59,60,61,62,63,64,49,50,51,52,53,54,55,56,41,42,43,44,45,46,47,48,33,34,35,36,37,38,39,40],
+        6: [17,18,19,20,9,10,11,12,1,2,3,4],
+        7: [21,22,23,24,13,14,15,16,5,6,7,8]
     },
 
     // ===== CRÉATION GRILLE PADS =====
@@ -170,13 +172,9 @@ const PadsContent = {
         this.updateAllPadVisuals();
     },
 
-    // ===== VÉRIFICATION DISPONIBILITÉ PADS =====
+    // ===== VÉRIFICATION DISPONIBILITÉ PADS SIMPLIFIÉE =====
     isPadAvailable(padNumber) {
-        if (this.isPadInGroupAssignment(padNumber)) {
-            return false;
-        }
-        
-        if (this.isPadInAssignedGroupZone(padNumber)) {
+        if (this.isPadInAnyAssignedGroup(padNumber)) {
             return false;
         }
         
@@ -187,16 +185,7 @@ const PadsContent = {
         return true;
     },
 
-    isPadInGroupAssignment(padNumber) {
-        for (const [groupId, color] of Object.entries(this.groupAssignments)) {
-            if (color && this.groupMappings[groupId].includes(padNumber)) {
-                return true;
-            }
-        }
-        return false;
-    },
-
-    isPadInAssignedGroupZone(padNumber) {
+    isPadInAnyAssignedGroup(padNumber) {
         for (const [groupId, groupPads] of Object.entries(this.groupMappings)) {
             if (groupPads.includes(padNumber)) {
                 if (this.groupAssignments[groupId]) {
@@ -470,16 +459,9 @@ const PadsContent = {
         return !!(this.groupAssignments[groupId]);
     },
 
-    // ===== API PUBLIQUE PROTECTION CROISÉE =====
-    isPadInAssignedGroupZone(padNumber) {
-        for (const [groupId, groupPads] of Object.entries(this.groupMappings)) {
-            if (groupPads.includes(padNumber)) {
-                if (this.groupAssignments[groupId]) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    // ===== API PUBLIQUE SIMPLIFIÉE =====
+    isPadInGroupAssignment(padNumber) {
+        return this.isPadInAnyAssignedGroup(padNumber);
     },
 
     // ===== DEBUGGING =====
