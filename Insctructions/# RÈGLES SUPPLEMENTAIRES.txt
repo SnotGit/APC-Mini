@@ -1,0 +1,39 @@
+📋 RÈGLES SUPPLEMENTAIRES
+
+SÉPARATION DES RESPONSABILITÉS STRICTE
+
+js/content/ = Hub central, exécution, affichage principal, persistance
+js/panel-control/panel-config/ = Interfaces contrôle, décisions utilisateur
+js/console/ = Messages UX et logs uniquement
+
+LOGS CENTRALISÉS OBLIGATOIRES
+
+ZÉRO log dans les modules métier
+Tous les logs dans js/console/console-logs.js
+Communication via événements console-log-request
+Modules émettent, console-logs formate et affiche
+
+CODE PUR EXIGÉ
+
+Pas de commentaires d'état ("NOUVEAU", "OPTIMISÉ", "BEFORE/AFTER")
+Pas de verbosité dans les réponses (utilisateur sait lire le code)
+Code métier uniquement, zéro pollution
+Optimisation sans perte de fonctionnalité
+
+ARCHITECTURE ÉVÉNEMENTIELLE
+
+Modules CONFIG DÉCIDENT et émettent événements
+Hub CONTENT EXÉCUTE les demandes reçues
+Séparation claire : décision vs exécution
+
+LOGIQUE FAMILIALE
+
+Interface utilisateur → Décision → Événement → Hub → Exécution + Affichage
+Chaque module reste dans son domaine de responsabilité
+Pas de mélange des rôles
+
+RÉPONSES CONCISES
+
+Message simple de fin de travail suffit
+Pas d'extraits de code dans les explications
+Focus sur l'essentiel uniquement
