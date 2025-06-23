@@ -7,7 +7,7 @@ const PadsColors = {
     colorsEnabled: true,
     isInitialized: false,
 
-    // ===== CRÉATION TEMPLATE =====
+    // ===== CRÉATION TEMPLATE (INCHANGÉ) =====
     create() {
         return `
             <div class="color-section">
@@ -154,13 +154,10 @@ const PadsColors = {
         }));
     },
 
-    // ===== VALIDATION DISPONIBILITÉ =====
+    // ===== VALIDATION SIMPLIFIÉE 7 GROUPES =====
     isPadSelectable(padNumber) {
+        // Validation simple : pas de calculs dynamiques complexes
         if (this.isPadOccupiedByGroup(padNumber)) {
-            return false;
-        }
-        
-        if (this.isPadInAssignedGroupZone(padNumber)) {
             return false;
         }
         
@@ -172,15 +169,9 @@ const PadsColors = {
     },
 
     isPadOccupiedByGroup(padNumber) {
+        // Utiliser API simplifiée PadsContent pour 7 groupes
         if (window.PadsContent && window.PadsContent.isPadInGroupAssignment) {
             return window.PadsContent.isPadInGroupAssignment(padNumber);
-        }
-        return false;
-    },
-
-    isPadInAssignedGroupZone(padNumber) {
-        if (window.PadsContent && window.PadsContent.isPadInAssignedGroupZone) {
-            return window.PadsContent.isPadInAssignedGroupZone(padNumber);
         }
         return false;
     },
@@ -237,6 +228,21 @@ const PadsColors = {
         this.updateColorsState();
     },
 
+    // ===== UTILITAIRES 7 GROUPES =====
+    findGroupForPad(padNumber) {
+        if (window.PadsContent && window.PadsContent.findGroupForPad) {
+            return window.PadsContent.findGroupForPad(padNumber);
+        }
+        return null;
+    },
+
+    isGroupAssigned(groupId) {
+        if (window.PadsContent && window.PadsContent.isGroupAssigned) {
+            return window.PadsContent.isGroupAssigned(groupId);
+        }
+        return false;
+    },
+
     // ===== API PUBLIQUE =====
     getSelectedPad() {
         return this.selectedPad;
@@ -259,7 +265,20 @@ const PadsColors = {
         this.updateColorsState();
     },
 
-    // ===== DEBUGGING =====
+    // ===== VALIDATION PUBLIQUE =====
+    isPadAvailableForColor(padNumber) {
+        return this.isPadSelectable(padNumber);
+    },
+
+    canApplyColorToPad(padNumber) {
+        return this.colorsEnabled && this.isPadSelectable(padNumber);
+    },
+
+    canApplyColorToGroup(groupId) {
+        return this.colorsEnabled && groupId !== null;
+    },
+
+    // ===== DEBUGGING SIMPLIFIÉ =====
     getState() {
         return {
             currentMode: this.currentMode,
@@ -267,11 +286,13 @@ const PadsColors = {
             selectedGroup: this.selectedGroup,
             colorsEnabled: this.colorsEnabled,
             hasValidSelection: this.hasValidSelection(),
-            isPadSelectable: this.selectedPad ? this.isPadSelectable(this.selectedPad) : null
+            isPadSelectable: this.selectedPad ? this.isPadSelectable(this.selectedPad) : null,
+            groupForSelectedPad: this.selectedPad ? this.findGroupForPad(this.selectedPad) : null
         };
     }
 };
 
+// ===== EXPORT GLOBAL =====
 if (typeof window !== 'undefined') {
     window.PadsColors = PadsColors;
 }

@@ -7,8 +7,9 @@ const GroupsMode = {
     sequencerSteps: 16,
     isInitialized: false,
 
-    // MAPPING 7 GROUPES CONDITIONNELS
+    // ===== NOUVEAU MAPPING 7 GROUPES CONDITIONNELS =====
     groups: {
+        // GROUPES SÉQUENCEUR (16 pads avec contrôles)
         1: { 
             name: 'GROUPE 1', 
             pads: [57,58,59,60,49,50,51,52,41,42,43,44,33,34,35,36],
@@ -21,6 +22,8 @@ const GroupsMode = {
             hasSequencer: true,
             controls: { 29: null, 30: 'green', 31: 'yellow', 32: 'red' }
         },
+        
+        // GROUPES STANDARDS (16 pads complets)
         3: { 
             name: 'GROUPE 3', 
             pads: [25,26,27,28,17,18,19,20,9,10,11,12,1,2,3,4],
@@ -33,27 +36,31 @@ const GroupsMode = {
             hasSequencer: false,
             controls: {}
         },
+        
+        // GROUPE MODE 32 (fusion groupes 1+2)
         5: {
             name: 'GROUPE 5',
             pads: [57,58,59,60,61,62,63,64,49,50,51,52,53,54,55,56,41,42,43,44,45,46,47,48,33,34,35,36,37,38,39,40],
             hasSequencer: true,
             controls: { 25: null, 26: 'green', 27: 'yellow', 28: 'red' }
         },
+        
+        // GROUPES RÉDUITS (sans contrôles conflictuels)
         6: {
             name: 'GROUPE 6', 
-            pads: [17,18,19,20,9,10,11,12,1,2,3,4],
+            pads: [17,18,19,20,9,10,11,12,1,2,3,4], // 12 pads (groupe 3 sans contrôles)
             hasSequencer: false,
             controls: {}
         },
         7: {
             name: 'GROUPE 7',
-            pads: [21,22,23,24,13,14,15,16,5,6,7,8],
+            pads: [21,22,23,24,13,14,15,16,5,6,7,8], // 12 pads (groupe 4 sans contrôles)
             hasSequencer: false,
             controls: {}
         }
     },
 
-    // CRÉATION TEMPLATE
+    // ===== CRÉATION TEMPLATE (INCHANGÉ - 4 BOUTONS) =====
     create() {
         return `
             <div class="groups-section">
@@ -83,32 +90,40 @@ const GroupsMode = {
         this.isInitialized = true;
     },
 
-    // ===== MAPPING CONDITIONNEL =====
+    // ===== NOUVEAU MAPPING CONDITIONNEL =====
     getEffectiveGroupId(displayGroupId) {
+        // Interface affiche 1,2,3,4 mais mapping réel conditionnel
+        
         if (displayGroupId === 3) {
+            // Bouton "GROUPE 3" → mappe vers groupe 6 si conflits contrôles
             if (this.hasControlsConflict(3)) {
-                return 6;
+                return 6; // Mapping vers 12 pads
             }
-            return 3;
+            return 3; // Mapping normal 16 pads
         }
         
         if (displayGroupId === 4) {
+            // Bouton "GROUPE 4" → mappe vers groupe 7 si conflits contrôles  
             if (this.hasControlsConflict(4)) {
-                return 7;
+                return 7; // Mapping vers 12 pads
             }
-            return 4;
+            return 4; // Mapping normal 16 pads
         }
         
+        // Groupes 1,2 = mapping direct
         return displayGroupId;
     },
 
+    // ===== DÉTECTION CONFLITS SIMPLIFIÉE =====
     hasControlsConflict(displayGroupId) {
         if (displayGroupId === 3) {
+            // Groupe 3 a conflit si groupe 1 ou 5 séquenceur actif
             const activeSequencer = this.getActiveSequencerGroup();
             return activeSequencer === 1 || activeSequencer === 5;
         }
         
         if (displayGroupId === 4) {
+            // Groupe 4 a conflit si groupe 2 séquenceur actif
             const activeSequencer = this.getActiveSequencerGroup();
             return activeSequencer === 2;
         }
@@ -150,8 +165,9 @@ const GroupsMode = {
         });
     },
 
-    // ===== GESTION CLICS GROUPES =====
+    // ===== GESTION CLICS GROUPES REFACTORISÉE =====
     handleGroupClick(displayGroupId) {
+        // Utiliser mapping effectif selon contexte
         const effectiveGroupId = this.getEffectiveGroupId(displayGroupId);
         
         if (!this.isGroupSelectable(effectiveGroupId)) {
@@ -186,7 +202,7 @@ const GroupsMode = {
             }
         }));
         
-        if (!this.sequencerToggle || this.isSequencerActiveForGroup(effectiveGroupId)) {
+        if (!this.sequencerToggle || !this.isSequencerActiveForGroup(effectiveGroupId)) {
             window.dispatchEvent(new CustomEvent('highlight-group', {
                 detail: { 
                     groupPads: group.pads,
@@ -232,7 +248,9 @@ const GroupsMode = {
         this.updateInterface();
     },
 
+    // ===== RESTRICTION SWITCH 32 =====
     canSwitch32() {
+        // Switch 32 bloqué si groupes 1 ou 2 assignés
         const group1Assigned = this.getGroupAssignedColor(1);
         const group2Assigned = this.getGroupAssignedColor(2);
         
@@ -281,15 +299,16 @@ const GroupsMode = {
         }));
     },
 
-    // ===== LOGIQUE GROUPES =====
+    // ===== LOGIQUE GROUPES SIMPLIFIÉE =====
     getActiveSequencerGroup() {
         if (this.sequencerSteps === 32) {
-            return 5;
+            return 5; // Toujours groupe 5 pour mode 32
         } else {
+            // Mode 16 : utiliser groupe sélectionné si compatible, sinon défaut
             if (this.selectedGroup && this.groups[this.selectedGroup].hasSequencer) {
                 return this.selectedGroup;
             } else {
-                return [1, 2].find(gId => this.groups[gId].hasSequencer) || null;
+                return 1; // Groupe par défaut
             }
         }
     },
@@ -314,6 +333,7 @@ const GroupsMode = {
     },
 
     isColorAllowed(groupId) {
+        // Couleurs bloquées si groupe a séquenceur actif
         if (this.sequencerToggle && this.groups[groupId].hasSequencer) {
             const activeSequencerGroup = this.getActiveSequencerGroup();
             return groupId !== activeSequencerGroup;
@@ -321,12 +341,14 @@ const GroupsMode = {
         return true;
     },
 
-    // ===== PROTECTION CROISÉE SIMPLIFIÉE =====
+    // ===== PROTECTION SIMPLIFIÉE =====
     isGroupSelectable(groupId) {
+        // Protection simple : Mode 32 bloque groupes 1,2
         if (this.sequencerSteps === 32 && (groupId === 1 || groupId === 2)) {
             return false;
         }
         
+        // Protection pads individuels dans zone
         return !this.hasIndividualPadsInZone(groupId);
     },
 
@@ -343,38 +365,47 @@ const GroupsMode = {
         });
     },
 
-    // ===== INTERFACE =====
+    // ===== INTERFACE SIMPLIFIÉE =====
     updateInterface() {
         document.querySelectorAll('.group-btn').forEach(btn => {
             const displayGroupId = parseInt(btn.dataset.group);
             const effectiveGroupId = this.getEffectiveGroupId(displayGroupId);
             
-            btn.classList.remove('active', 'sequencer-active', 'mode-32-visual', 'assigned-green', 'assigned-yellow', 'assigned-red', 'zone-conflict');
+            // Reset toutes les classes
+            btn.classList.remove('active', 'sequencer-active', 'mode-32-visual', 
+                              'assigned-green', 'assigned-yellow', 'assigned-red', 'zone-conflict');
             btn.disabled = false;
             
+            // État assigné couleur
             const assignedColor = this.getGroupAssignedColor(effectiveGroupId);
             if (assignedColor) {
                 btn.classList.add(`assigned-${assignedColor}`);
             }
             
+            // État sélectionné
             if (effectiveGroupId === this.selectedGroup) {
                 btn.classList.add('active');
             }
             
+            // État séquenceur actif
             if (this.sequencerToggle && effectiveGroupId === this.getActiveSequencerGroup()) {
                 btn.classList.add('sequencer-active');
             }
             
+            // Mode 32 : disable groupes 1,2
             if (this.sequencerSteps === 32 && (displayGroupId === 1 || displayGroupId === 2)) {
                 btn.classList.add('mode-32-visual');
                 btn.disabled = true;
-            } else if (!this.isGroupSelectable(effectiveGroupId)) {
+            } 
+            // Conflits de zone
+            else if (!this.isGroupSelectable(effectiveGroupId)) {
                 btn.disabled = true;
                 btn.classList.add('zone-conflict');
             }
         });
     },
 
+    // ===== HELPERS =====
     getGroupAssignedColor(groupId) {
         if (window.PadsContent && window.PadsContent.groupAssignments) {
             return window.PadsContent.groupAssignments[groupId] || null;
@@ -382,7 +413,6 @@ const GroupsMode = {
         return null;
     },
 
-    // ===== PERSISTANCE =====
     hasGroupAssignments(groupId) {
         if (window.PadsContent && window.PadsContent.hasGroupAssignments) {
             return window.PadsContent.hasGroupAssignments(groupId);
@@ -409,9 +439,22 @@ const GroupsMode = {
 
     getSequencerSteps() {
         return this.sequencerSteps;
+    },
+
+    // ===== DEBUGGING =====
+    getState() {
+        return {
+            selectedGroup: this.selectedGroup,
+            displayGroupId: this.displayGroupId,
+            sequencerToggle: this.sequencerToggle,
+            sequencerSteps: this.sequencerSteps,
+            activeSequencerGroup: this.getActiveSequencerGroup(),
+            canSwitch32: this.canSwitch32()
+        };
     }
 };
 
+// ===== EXPORT GLOBAL =====
 if (typeof window !== 'undefined') {
     window.GroupsMode = GroupsMode;
 }

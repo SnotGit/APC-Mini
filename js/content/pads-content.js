@@ -15,18 +15,25 @@ const PadsContent = {
     },
     isInitialized: false,
 
-    // ===== MAPPING 7 GROUPES =====
+    // ===== NOUVEAU MAPPING 7 GROUPES CONDITIONNELS =====
     groupMappings: {
+        // GROUPES SÉQUENCEUR
         1: [57,58,59,60,49,50,51,52,41,42,43,44,33,34,35,36],
         2: [61,62,63,64,53,54,55,56,45,46,47,48,37,38,39,40],
+        
+        // GROUPES STANDARDS
         3: [25,26,27,28,17,18,19,20,9,10,11,12,1,2,3,4],
         4: [29,30,31,32,21,22,23,24,13,14,15,16,5,6,7,8],
+        
+        // GROUPE MODE 32
         5: [57,58,59,60,61,62,63,64,49,50,51,52,53,54,55,56,41,42,43,44,45,46,47,48,33,34,35,36,37,38,39,40],
-        6: [17,18,19,20,9,10,11,12,1,2,3,4],
-        7: [21,22,23,24,13,14,15,16,5,6,7,8]
+        
+        // GROUPES RÉDUITS
+        6: [17,18,19,20,9,10,11,12,1,2,3,4],      // Groupe 3 sans contrôles
+        7: [21,22,23,24,13,14,15,16,5,6,7,8]      // Groupe 4 sans contrôles
     },
 
-    // ===== CRÉATION GRILLE PADS =====
+    // ===== CRÉATION GRILLE PADS (INCHANGÉ) =====
     create() {
         return `
             <div class="pad-grid" id="padGrid">
@@ -174,6 +181,7 @@ const PadsContent = {
 
     // ===== VÉRIFICATION DISPONIBILITÉ PADS SIMPLIFIÉE =====
     isPadAvailable(padNumber) {
+        // Protection simple : pas de calculs dynamiques complexes
         if (this.isPadInAnyAssignedGroup(padNumber)) {
             return false;
         }
@@ -185,7 +193,9 @@ const PadsContent = {
         return true;
     },
 
+    // ===== PROTECTION GROUPES SIMPLIFIÉE =====
     isPadInAnyAssignedGroup(padNumber) {
+        // Vérifier tous les 7 groupes
         for (const [groupId, groupPads] of Object.entries(this.groupMappings)) {
             if (groupPads.includes(padNumber)) {
                 if (this.groupAssignments[groupId]) {
@@ -248,10 +258,12 @@ const PadsContent = {
 
     // ===== GESTION HIGHLIGHTS =====
     highlightGroup(groupPads) {
+        // Clear highlights précédents
         document.querySelectorAll('.pad.group-highlight').forEach(pad => {
             pad.classList.remove('group-highlight');
         });
         
+        // Appliquer nouveaux highlights
         groupPads.forEach(padNumber => {
             const pad = document.querySelector(`[data-pad-number="${padNumber}"]`);
             if (pad && !this.getPadColor(padNumber) && !this.isSequencerHighlighted(padNumber)) {
@@ -369,16 +381,20 @@ const PadsContent = {
         const pad = document.querySelector(`[data-pad-number="${padNumber}"]`);
         if (!pad) return;
 
+        // Reset classes
         pad.classList.remove('selected', 'group-highlight', 'color-green', 'color-yellow', 'color-red', 'pad-occupied');
 
+        // État occupé
         if (!this.isPadAvailable(padNumber)) {
             pad.classList.add('pad-occupied');
         }
 
+        // État sélectionné
         if (this.selectedPad === padNumber && this.currentMode === 'pads') {
             pad.classList.add('selected');
         }
         
+        // Couleur assignée
         const color = this.getPadColor(padNumber);
         if (color) {
             pad.classList.add(`color-${color}`);
@@ -438,7 +454,7 @@ const PadsContent = {
         }
     },
 
-    // ===== API PUBLIQUE =====
+    // ===== API PUBLIQUE ADAPTÉE 7 GROUPES =====
     getPadColor(padNumber) {
         return this.padColors[padNumber] || null;
     },
@@ -459,8 +475,37 @@ const PadsContent = {
         return !!(this.groupAssignments[groupId]);
     },
 
-    // ===== API PUBLIQUE SIMPLIFIÉE =====
+    // ===== API SIMPLIFIÉE =====
     isPadInGroupAssignment(padNumber) {
+        return this.isPadInAnyAssignedGroup(padNumber);
+    },
+
+    // ===== UTILITAIRES GROUPES =====
+    findGroupForPad(padNumber) {
+        // Trouver quel groupe contient ce pad
+        for (const [groupId, groupPads] of Object.entries(this.groupMappings)) {
+            if (groupPads.includes(padNumber)) {
+                return parseInt(groupId);
+            }
+        }
+        return null;
+    },
+
+    getGroupPads(groupId) {
+        return this.groupMappings[groupId] || [];
+    },
+
+    isGroupAssigned(groupId) {
+        return !!(this.groupAssignments[groupId]);
+    },
+
+    getGroupAssignedColor(groupId) {
+        return this.groupAssignments[groupId] || null;
+    },
+
+    // ===== VALIDATION ZONES =====
+    isPadInAssignedGroupZone(padNumber) {
+        // Simplification : même logique que isPadInAnyAssignedGroup
         return this.isPadInAnyAssignedGroup(padNumber);
     },
 
@@ -472,11 +517,13 @@ const PadsContent = {
             padColorsCount: Object.keys(this.padColors).length,
             groupAssignments: this.groupAssignments,
             sequencerConfig: this.sequencerConfig,
-            highlightedPadsCount: this.sequencerConfig.highlightedPads.length
+            highlightedPadsCount: this.sequencerConfig.highlightedPads.length,
+            availableGroups: Object.keys(this.groupMappings).length
         };
     }
 };
 
+// ===== EXPORT GLOBAL =====
 if (typeof window !== 'undefined') {
     window.PadsContent = PadsContent;
 }

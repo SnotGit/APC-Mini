@@ -4,7 +4,7 @@ const PadsMode = {
     selectedPad: null,
     isInitialized: false,
 
-    // ===== CRÉATION TEMPLATE =====
+    // ===== CRÉATION TEMPLATE (INCHANGÉ) =====
     create() {
         return `
             <div class="info-section">
@@ -94,13 +94,10 @@ const PadsMode = {
         window.dispatchEvent(new CustomEvent('clear-selection'));
     },
 
-    // ===== VALIDATION DISPONIBILITÉ =====
+    // ===== VALIDATION SIMPLIFIÉE 7 GROUPES =====
     isPadSelectable(padNumber) {
+        // Validation simple : pad occupé par groupe OU contrôle séquenceur
         if (this.isPadOccupiedByGroup(padNumber)) {
-            return false;
-        }
-        
-        if (this.isPadInAssignedGroupZone(padNumber)) {
             return false;
         }
         
@@ -112,6 +109,7 @@ const PadsMode = {
     },
 
     isPadOccupiedByGroup(padNumber) {
+        // Utiliser API simplifiée PadsContent pour 7 groupes
         if (window.PadsContent && window.PadsContent.isPadInGroupAssignment) {
             return window.PadsContent.isPadInGroupAssignment(padNumber);
         }
@@ -162,15 +160,11 @@ const PadsMode = {
         return null;
     },
 
+    // ===== RAISONS INDISPONIBILITÉ SIMPLIFIÉES =====
     getUnavailableReason(padNumber) {
         if (this.isPadOccupiedByGroup(padNumber)) {
             const groupId = this.findGroupForPad(padNumber);
             return groupId ? `OCCUPÉ PAR GROUPE ${groupId}` : 'OCCUPÉ PAR GROUPE';
-        }
-        
-        if (this.isPadInAssignedGroupZone(padNumber)) {
-            const groupId = this.findAssignedGroupForPad(padNumber);
-            return groupId ? `ZONE GROUPE ${groupId} ASSIGNÉE` : 'ZONE GROUPE ASSIGNÉE';
         }
         
         if (this.isPadControlSequencer(padNumber)) {
@@ -180,50 +174,20 @@ const PadsMode = {
         return 'NON DISPONIBLE';
     },
 
-    isPadInAssignedGroupZone(padNumber) {
-        if (window.PadsContent && window.PadsContent.isPadInAssignedGroupZone) {
-            return window.PadsContent.isPadInAssignedGroupZone(padNumber);
-        }
-        return false;
+    // ===== UTILITAIRES 7 GROUPES =====
+    findGroupForPad(padNumber) {
+        // Chercher dans tous les 7 groupes
+        if (!window.PadsContent) return null;
+        
+        return window.PadsContent.findGroupForPad(padNumber);
     },
 
     findAssignedGroupForPad(padNumber) {
-        const groupMappings = {
-            1: [57,58,59,60,49,50,51,52,41,42,43,44,33,34,35,36],
-            2: [61,62,63,64,53,54,55,56,45,46,47,48,37,38,39,40],
-            3: [25,26,27,28,17,18,19,20,9,10,11,12,1,2,3,4],
-            4: [29,30,31,32,21,22,23,24,13,14,15,16,5,6,7,8]
-        };
+        // Simplification : même logique que findGroupForPad
+        const groupId = this.findGroupForPad(padNumber);
         
-        for (const [groupId, pads] of Object.entries(groupMappings)) {
-            if (pads.includes(padNumber)) {
-                if (window.PadsContent && window.PadsContent.groupAssignments) {
-                    if (window.PadsContent.groupAssignments[groupId]) {
-                        return groupId;
-                    }
-                }
-            }
-        }
-        
-        return null;
-    },
-
-    findGroupForPad(padNumber) {
-        const groupMappings = {
-            1: [57,58,59,60,49,50,51,52,41,42,43,44,33,34,35,36],
-            2: [61,62,63,64,53,54,55,56,45,46,47,48,37,38,39,40],
-            3: [25,26,27,28,17,18,19,20,9,10,11,12,1,2,3,4],
-            4: [29,30,31,32,21,22,23,24,13,14,15,16,5,6,7,8]
-        };
-        
-        for (const [groupId, pads] of Object.entries(groupMappings)) {
-            if (pads.includes(padNumber)) {
-                if (window.PadsContent && window.PadsContent.hasGroupAssignments) {
-                    if (window.PadsContent.hasGroupAssignments(groupId)) {
-                        return groupId;
-                    }
-                }
-            }
+        if (groupId && window.PadsContent && window.PadsContent.isGroupAssigned) {
+            return window.PadsContent.isGroupAssigned(groupId) ? groupId : null;
         }
         
         return null;
@@ -243,11 +207,13 @@ const PadsMode = {
         return {
             selectedPad: this.selectedPad,
             hasSelection: this.hasSelection(),
-            isPadSelectable: this.selectedPad ? this.isPadSelectable(this.selectedPad) : null
+            isPadSelectable: this.selectedPad ? this.isPadSelectable(this.selectedPad) : null,
+            groupForPad: this.selectedPad ? this.findGroupForPad(this.selectedPad) : null
         };
     }
 };
 
+// ===== EXPORT GLOBAL =====
 if (typeof window !== 'undefined') {
     window.PadsMode = PadsMode;
 }

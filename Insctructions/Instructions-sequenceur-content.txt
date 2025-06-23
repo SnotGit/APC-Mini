@@ -1,0 +1,100 @@
+**Instructions** 
+
+Nous faisons design du content du séquenceur 
+
+Dans le content : 
+- Un sequenceur container
+
+Dans ce sequenceur container :
+- une grille de 20 pads rectangulaires ; 4 pads x5 rows
+- 16 pads de sequence/scales config.
+- 4 pads de contrôle/menu permanents
+Les boutons du menu mode et scales sont pour changer la vue dans le sequenceur 
+
+Exemple pour le groupe 1 assigné en sequenceur. 
+
+numéros Pads menu et fonctions :  
+25 = play sequenceur ; blanc en css / null en js,clignote vert si played. 
+26 = Mode change ( drumpad/play steps ) vert
+27 = scale config ; 8 scales , 4 swigns , 4 octaves , orange  
+28 = stop sequencer , rouge  
+
+ 
+
+🎹 Mode Instrument Play/drumpad play :
+Dernière note jouée = Root note de la séquence → Super intuitif et musical !
+Pad pressé → Note de base → Séquence suit cette note + gamme.
+
+
+Les 16 pads pour exemple du "Groupe 1" assigné en séquenceur :
+
+8 Scales (Vert) :
+Major, Minor, Pentatonic, Blues, Dorian, Mixolydian, Phrygian, Chromatic
+
+4 Swings (Jaune) :
+20%, 30%, 50%, 70% → Crucial pour le groove ! swing réglable via slider dans config panel. 
+Valeur de swing attribuée et visible dans la partie swing ou il u a des cases pour enregistrer les valeurs. Voir image. 
+
+4 Octaves (Rouge) :
+octave base, octave+1, octave+2, octave+3 → Contrôle de registre
+Attribution octave de base dans panel config.
+
+🚀 Workflow révolutionnaire :
+
+Play pads → Dernière note = Root note
+Sélectionner gamme (vert) → Séquence suit cette gamme
+Ajuster swing (jaune) → Groove personnalisé
+Changer octave (rouge) → Registre adapté
+Programme steps → Séquence relative à la root note
+Press Play and enjoy. 
+
+Press pad scales = go scales vue. Re-press scales pad = sequenceur vue. 
+
+toutes ces commandes doivent être visibles en temps réel dans l'interface et sur le contrôleur apc mini. 
+
+ 
+LES DEUX MODES POUR LE SEQUENCER : 
+
+Mode 1 : Fixe (jouer instrument /drumpad playing style)
+
+Pas de playhead → Vue statique pour jouer de la musique. 
+
+Mode 2 : Défilement (performance)
+
+Playhead blanc ou couleur à définir → Suit la position temps réel, suit le tempo, 
+jouer les Steps → joue les notes programmées
+Feedback live → Voit où on en est dans la boucle. 
+
+
+Les 2 longueurs de séquence :
+
+Mode 16: 
+
+[Step01][Step02][Step03][Step04] ← Pads 57,58,59,60
+[Step05][Step06][Step07][Step08] ← Pads 49,50,51,52
+[Step09][Step10][Step11][Step12] ← Pads 41,42,43,44
+[Step13][Step14][Step15][Step16] ← Pads 33,34,35,36
+
+
+Sequenceur control menu pads = 25,26,27,28
+
+Loop séquence :
+16 steps = début 57 , fin 37 , reprise 57 , fin 37et ainsi de suite
+
+
+Mode 32: 
+
+[Step01][Step02][Step03][Step04][Step05][Step06][Step07][Step08] = pads 57,58,59,60,61,62,63,64
+[Step09][Step10][Step11][Step12][Step13][Step14][Step15][Step16] = pads 49 à 56
+[Step17][Step18][Step19][Step20][Step21][Step22][Step23][Step24] = pads 41 à 48
+[Step25][Step26][Step27][Step28][Step29][Step30][Step31][Step32] = pads 33 à 40
+
+Sequenceur control menu pads = 25,26,27,28
+
+Loop séquence :
+32steps = début 57 , fin 40, reprise 57 , fin 40 et ainsi de suite. 
+
+
+Adapter l'exemple du groupe 1pour le groupe 2. Ajuster les numéros et notes des pads etc
+
+Tu dois reproduire fidèlement le design du dessin de référence , en gardant le style de l'application. 

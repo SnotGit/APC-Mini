@@ -1,0 +1,229 @@
+# 🎮 WORKFLOW UTILISATEUR - Mécanique d'Interaction
+
+## 🎯 3 VUES DISTINCTES
+
+### 📱 VUE PADS (pads-content)
+```
+FONCTION : Configuration assignations couleurs
+ACTIONS : 
+- Clic pad → sélection → couleur → assignation
+- Clic groupe → sélection → couleur → assignation tous pads groupe
+- Toggle séquenceur ON → highlights blancs (indication zone séquenceur)
+- Switch vue séquenceur → programmation steps
+
+INTERDITS : 
+- PAS de programmation séquence
+- PAS d'exécution séquenceur
+```
+
+### 🎹 VUE SEQUENCER (sequencer-content)  
+```
+FONCTION : Programmation steps séquences
+ACTIONS :
+- Grille séquenceur interactive
+- Play/stop, mode, scales, reverse
+- Programmation steps selon pads assignés
+
+SOURCE : Configuration de pads-content
+```
+
+### 📤 VUE EXPORT (export-content)
+```
+FONCTION : Export configurations Ableton Live
+ACTIONS : Génération Control Surface Scripts
+```
+
+---
+
+## 🎮 MÉCANIQUE GROUPS-MODE
+
+### Interface 4 Boutons (Toujours Visibles)
+```
+[GROUPE 1] [GROUPE 2] [GROUPE 3] [GROUPE 4]
+```
+
+### Fonctions Dynamiques Injectées
+```
+Toggle Séquenceur : ☐ Séquenceur    [16 ⟷ 32]
+                    ↑                   ↑
+            sequencer-mode.js    sequencer-mode.js
+```
+
+### Mapping Intelligent Transparent
+```
+NORMAL :
+Bouton 1 → Groupe 1 (16 pads)
+Bouton 2 → Groupe 2 (16 pads)  
+Bouton 3 → Groupe 3 (16 pads)
+Bouton 4 → Groupe 4 (16 pads)
+
+AVEC CONFLITS CONTRÔLES :
+Bouton 1 → Groupe 1 (16 pads)
+Bouton 2 → Groupe 2 (16 pads)
+Bouton 3 → Groupe 6 (12 pads) ← Auto si groupe 1 séquenceur actif
+Bouton 4 → Groupe 7 (12 pads) ← Auto si groupe 2 séquenceur actif
+```
+
+---
+
+## ⚙️ CONDITIONS PADS TEMPS RÉEL
+
+### Mode Assignation Normal
+```
+Toggle Séquenceur OFF :
+✅ Couleurs accessibles
+✅ Sélection pads/groupes libre
+✅ Assignations immédiates
+❌ Pas de highlights séquenceur
+```
+
+### Mode Séquenceur Actif  
+```
+Toggle Séquenceur ON :
+❌ Couleurs inaccessibles (zone séquenceur)
+✅ Highlights blancs permanents (16 ou 32 pads)
+✅ Contrôles séquenceur colorés automatiques
+❌ Sélection zone séquenceur bloquée
+```
+
+### Switch 16/32 Steps
+```
+16 STEPS :
+- Groupe 1 OU 2 (selon sélection)
+- 16 pads highlights blancs
+- Contrôles : pads 25,26,27,28 OU 29,30,31,32
+
+32 STEPS :
+- Groupe 5 automatique (fusion 1+2)  
+- 32 pads highlights blancs
+- Contrôles : pads 25,26,27,28
+- BLOQUÉ si groupe 1 OU 2 assignés couleurs
+```
+
+---
+
+## 🔄 COMMUNICATION INTER-MODULES
+
+### Flow Principal
+```
+USER CLICK → groups-mode → pads-content → MIDI + Visual Update
+```
+
+### Workflow Détaillé
+```
+1. SÉLECTION GROUPE
+   groups-mode → group-selected → pads-content
+   pads-content → highlight-group → Visual
+
+2. ASSIGNATION COULEUR  
+   pads-colors → apply-group-color → pads-content
+   pads-content → MIDI + Visual + Storage
+
+3. TOGGLE SÉQUENCEUR
+   sequencer-mode → sequencer-toggle-changed → groups-mode
+   groups-mode → sequencer-highlights-active → pads-content
+   pads-content → highlights blancs + contrôles colorés
+
+4. SWITCH 16/32
+   sequencer-mode → sequencer-steps-changed → groups-mode
+   groups-mode → clear + reactivate → pads-content
+```
+
+---
+
+## 🎯 LOGIQUE CONFLITS CONTRÔLES
+
+### Groupes avec Contrôles Séquenceur
+```
+GROUPE 1 : pads 25,26,27,28 = contrôles séquenceur
+GROUPE 2 : pads 29,30,31,32 = contrôles séquenceur
+GROUPE 3 : pads 25,26,27,28 = CONFLIT avec groupe 1
+GROUPE 4 : pads 29,30,31,32 = CONFLIT avec groupe 2
+```
+
+### Résolution Automatique
+```
+SI séquenceur groupe 1 actif :
+- Pads 25,26,27,28 occupés par contrôles
+- Bouton "GROUPE 3" → mappe automatiquement vers groupe 6 (12 pads)
+- Groupe 6 = [17,18,19,20,9,10,11,12,1,2,3,4] (sans contrôles conflictuels)
+
+SI séquenceur groupe 2 actif :
+- Pads 29,30,31,32 occupés par contrôles  
+- Bouton "GROUPE 4" → mappe automatiquement vers groupe 7 (12 pads)
+- Groupe 7 = [21,22,23,24,13,14,15,16,5,6,7,8] (sans contrôles conflictuels)
+```
+
+---
+
+## 🎮 WORKFLOW UTILISATEUR COMPLET
+
+### Scénario 1 : Assignation Simple
+```
+1. Sélectionner "GROUPE 1" → highlight 16 pads
+2. Clic couleur VERT → tous pads groupe 1 deviennent verts
+3. Assignation sauvée + envoyée MIDI
+```
+
+### Scénario 2 : Séquenceur 16 Steps
+```
+1. Sélectionner "GROUPE 1"
+2. Toggle ☑ Séquenceur → highlights blancs 16 pads + contrôles colorés
+3. Switch vue SEQUENCER → programmation steps sur grille
+4. Play séquence → notes selon pads assignés
+```
+
+### Scénario 3 : Conflit Automatique
+```
+1. Toggle ☑ Séquenceur sur groupe 1
+2. Sélectionner "GROUPE 3" → mappe automatiquement vers groupe 6 (12 pads)
+3. Utilisateur ne voit aucune différence d'interface
+4. Assignation couleur appliquée sur groupe 6 réel
+```
+
+### Scénario 4 : Restriction 32 Steps
+```
+1. Assigner couleur GROUPE 1
+2. Essayer switch [16 ⟷ 32] → BLOQUÉ
+3. Message : "Switch 32 bloqué : Groupe 1 assigné"
+4. Clear groupe 1 → switch redevient disponible
+```
+
+---
+
+## ⚡ TEMPS RÉEL & RÉACTIVITÉ
+
+### Mise à Jour Automatique
+```
+- Assignation pad → màj visuelle immédiate tous modules
+- Toggle séquenceur → màj highlights + disable couleurs
+- Switch steps → recalcul groupes + màj interface
+- Conflit détecté → remapping transparent
+```
+
+### Communication Events
+```
+group-selected → highlight visual
+apply-group-color → MIDI + storage + visual
+sequencer-toggle-changed → highlights + controls
+sequencer-colors-disabled → disable boutons couleurs
+clear-selection → reset visual states
+```
+
+---
+
+## 🎯 BELLE MÉCANIQUE = SIMPLICITÉ + INTELLIGENCE
+
+### Intuitive pour Utilisateur
+- **4 boutons toujours visibles** (interface stable)
+- **Mapping transparent** (pas de complexité visible)
+- **Feedback immédiat** (highlights, couleurs, MIDI)
+- **Restrictions claires** (messages informatifs)
+
+### Intelligent en Backend  
+- **Communication fluide** entre modules
+- **Résolution automatique** conflits
+- **Mise à jour temps réel** tous états
+- **Persistance transparente** configuration
+
+**🎯 OBJECTIF : Expérience fluide et intuitive avec mécanique robuste sous le capot !**
