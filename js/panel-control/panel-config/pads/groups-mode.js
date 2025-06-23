@@ -59,7 +59,6 @@ const GroupsMode = {
                     <button class="group-btn" data-group="2">GROUPE 2</button>
                     <button class="group-btn" data-group="3">GROUPE 3</button>
                     <button class="group-btn" data-group="4">GROUPE 4</button>
-                    <button class="group5-btn" data-group="5">GROUPE 5</button>
                 </div>
                 
                 <div id="sequencerModeContainer">
