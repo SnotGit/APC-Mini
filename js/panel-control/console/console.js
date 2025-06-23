@@ -1,17 +1,9 @@
 const Console = {
 
-    // ===== ÉTAT CONSOLE =====
+    // ===== ÉTAT CONSOLE SIMPLIFIÉ =====
     isInitialized: false,
     logs: [],
-    maxLogs: 1000,
-    autoScroll: true,
-    filters: {
-        system: true,
-        info: true,
-        success: true,
-        warning: true,
-        error: true
-    },
+    maxLogs: 50, // ✅ RÉDUIT : 1000 → 50 (suffisant pour debug)
 
     // ===== INITIALISATION =====
     init() {
@@ -34,22 +26,22 @@ const Console = {
     createTemplate() {
         return `
             <div class="console-container">
+
                 <div class="console-header">
                     <div class="console-title">Console</div>
-                    <div class="console-controls">
-                        <div class="connection-status" id="connectionStatus">Déconnecté</div>
-                        <button class="console-clear" id="consoleClearBtn">Clear</button>
-                    </div>
+                    <div class="connection-status" id="connectionStatus">Déconnecté</div>
+                    <button class="console-clear" id="consoleClearBtn">Clear</button>
                 </div>
 
                 <div class="console-content" id="consoleContent">
                     <!-- Logs dynamiques -->
                 </div>
+                
             </div>
         `;
     },
 
-    // ===== ÉVÉNEMENTS =====
+    // ===== ÉVÉNEMENTS ESSENTIELS =====
     setupEventListeners() {
         // Bouton clear
         document.addEventListener('click', (e) => {
@@ -58,20 +50,16 @@ const Console = {
             }
         });
 
-        // Écouter logs depuis app et modules
-        window.addEventListener('console-log', (event) => {
-            const { message, type } = event.detail;
-            this.addLog(message, type);
-        });
-
-        // Écouter statut MIDI depuis midi.js
+        // ✅ LOGS ESSENTIELS UNIQUEMENT
+        
+        // MIDI Status
         window.addEventListener('midi-status-changed', (event) => {
             const { connected, message } = event.detail;
             this.updateConnectionStatus(connected, message);
             this.addLog(message, connected ? 'success' : 'error');
         });
 
-        // Écouter assignations depuis modules
+        // Assignations Pads (feedback utilisateur important)
         window.addEventListener('pad-assigned', (event) => {
             const { padNumber, color } = event.detail;
             this.addLog(`Pad ${padNumber} → ${color}`, 'success');
@@ -82,7 +70,7 @@ const Console = {
             this.addLog(`Groupe ${groupId} → ${color}`, 'success');
         });
 
-        // Écouter séquenceur
+        // Séquenceur (états importants)
         window.addEventListener('sequencer-activated', (event) => {
             const { groupId, activated, steps } = event.detail;
             if (activated) {
@@ -92,56 +80,49 @@ const Console = {
             }
         });
 
-        window.addEventListener('sequencer-steps-changed', (event) => {
-            const { groupId, steps } = event.detail;
-            this.addLog(`Séquenceur Groupe ${groupId}: ${steps} steps`, 'info');
+        // Erreurs critiques
+        window.addEventListener('console-log', (event) => {
+            const { message, type } = event.detail;
+            if (type === 'error' || type === 'system') {
+                this.addLog(message, type);
+            }
         });
     },
 
-    // ===== SYSTÈME DE LOGS =====
+    // ===== SYSTÈME DE LOGS OPTIMISÉ =====
     addLog(message, type = 'info') {
-        const timestamp = this.getTimestamp();
         const logEntry = {
             message,
             type,
-            timestamp,
+            timestamp: this.getTimestamp(),
             id: Date.now() + Math.random()
         };
 
         // Ajouter au tableau
         this.logs.push(logEntry);
 
-        // Limiter nombre de logs
+        // ✅ LIMITE SIMPLE : garder seulement les derniers
         if (this.logs.length > this.maxLogs) {
             this.logs = this.logs.slice(-this.maxLogs);
+            this.refreshDisplay(); // Nettoyer DOM aussi
+        } else {
+            this.displayLog(logEntry);
         }
-
-        // Afficher dans interface
-        this.displayLog(logEntry);
     },
 
     displayLog(logEntry) {
         const consoleContent = document.getElementById('consoleContent');
         if (!consoleContent) return;
 
-        // Vérifier filtre
-        if (!this.filters[logEntry.type]) return;
-
         const logElement = document.createElement('div');
         logElement.className = `log-entry ${logEntry.type}`;
-        logElement.dataset.logId = logEntry.id;
         logElement.innerHTML = `
             <span class="timestamp">${logEntry.timestamp}</span>
             <span class="log-message">${this.escapeHtml(logEntry.message)}</span>
         `;
 
-        // Insérer en bas
         consoleContent.appendChild(logElement);
-
-        // Auto-scroll si activé
-        if (this.autoScroll) {
-            this.scrollToBottom();
-        }
+        this.scrollToBottom();
     },
 
     clearConsole() {
@@ -151,6 +132,14 @@ const Console = {
             consoleContent.innerHTML = '';
         }
         this.addLog('Console cleared', 'system');
+    },
+
+    refreshDisplay() {
+        const consoleContent = document.getElementById('consoleContent');
+        if (!consoleContent) return;
+
+        consoleContent.innerHTML = '';
+        this.logs.forEach(logEntry => this.displayLog(logEntry));
     },
 
     scrollToBottom() {
@@ -174,102 +163,17 @@ const Console = {
         }
     },
 
-    // ===== MÉTHODES PUBLIQUES =====
+    // ===== MÉTHODES PUBLIQUES ESSENTIELLES =====
     log(message, type = 'info') {
         this.addLog(message, type);
-    },
-
-    system(message) {
-        this.addLog(message, 'system');
-    },
-
-    info(message) {
-        this.addLog(message, 'info');
-    },
-
-    success(message) {
-        this.addLog(message, 'success');
-    },
-
-    warning(message) {
-        this.addLog(message, 'warning');
     },
 
     error(message) {
         this.addLog(message, 'error');
     },
 
-    // ===== FILTRES =====
-    setFilter(type, enabled) {
-        if (this.filters.hasOwnProperty(type)) {
-            this.filters[type] = enabled;
-            this.refreshDisplay();
-        }
-    },
-
-    refreshDisplay() {
-        const consoleContent = document.getElementById('consoleContent');
-        if (!consoleContent) return;
-
-        // Nettoyer affichage
-        consoleContent.innerHTML = '';
-
-        // Réafficher logs filtrés
-        this.logs.forEach(logEntry => {
-            if (this.filters[logEntry.type]) {
-                this.displayLog(logEntry);
-            }
-        });
-    },
-
-    // ===== CONFIGURATION =====
-    setAutoScroll(enabled) {
-        this.autoScroll = enabled;
-    },
-
-    setMaxLogs(max) {
-        this.maxLogs = Math.max(100, Math.min(5000, max));
-        
-        // Tronquer si nécessaire
-        if (this.logs.length > this.maxLogs) {
-            this.logs = this.logs.slice(-this.maxLogs);
-            this.refreshDisplay();
-        }
-    },
-
-    // ===== EXPORT/IMPORT =====
-    exportLogs() {
-        const exportData = {
-            timestamp: new Date().toISOString(),
-            logs: this.logs,
-            filters: this.filters
-        };
-
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-            type: 'application/json'
-        });
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `console-logs-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        this.addLog('Logs exportés', 'system');
-    },
-
-    // ===== GETTERS =====
-    getLogCount() {
-        return this.logs.length;
-    },
-
-    getLogsByType(type) {
-        return this.logs.filter(log => log.type === type);
-    },
-
-    getRecentLogs(count = 10) {
-        return this.logs.slice(-count);
+    success(message) {
+        this.addLog(message, 'success');
     },
 
     // ===== UTILITAIRES =====

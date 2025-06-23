@@ -31,8 +31,8 @@ const App = {
             // 5. Vérifier modules critiques
             this.checkCriticalModules();
 
-            // 6. Vue par défaut
-            this.switchToView('pads');
+            // 6. Vue par défaut 
+            this.activateDefaultView();
 
             this.isInitialized = true;
             this.notifyLog('Application initialisée', 'system');
@@ -42,6 +42,14 @@ const App = {
             if (window.Debug) window.Debug.initError(error);
             this.handleInitError(error);
         }
+    },
+
+    // ===== ACTIVATION VUE PAR DÉFAUT =====
+    activateDefaultView() {
+        // Cela synchronise header + content + config
+        window.dispatchEvent(new CustomEvent('view-changed', {
+            detail: { view: 'pads' }
+        }));
     },
 
     // ===== VÉRIFICATION MODULES =====
@@ -93,12 +101,10 @@ const App = {
         if (window.Debug) window.Debug.viewSwitch(viewId);
         this.currentView = viewId;
 
-        // Afficher contenu
         if (window.ContentZone) {
             window.ContentZone.showView(viewId);
         }
 
-        // Afficher config panel
         if (window.PanelControl) {
             window.PanelControl.showConfig(viewId);
         }
