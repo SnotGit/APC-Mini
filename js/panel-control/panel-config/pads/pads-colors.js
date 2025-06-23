@@ -7,19 +7,14 @@ const PadsColors = {
     colorsEnabled: true,
     isInitialized: false,
 
-    // ===== CRÉATION TEMPLATE (INCHANGÉ) =====
+    // ===== CRÉATION TEMPLATE =====
     create() {
         return `
             <div class="color-section">
-                <button class="color-btn green" data-color="green" title="Vert">
-                </button>
-                <button class="color-btn yellow" data-color="yellow" title="Jaune">
-                </button>
-                <button class="color-btn red" data-color="red" title="Rouge">
-                </button>
-                <button class="color-btn clear" data-color="clear" title="Effacer">
-                    CLEAR
-                </button>
+                <button class="color-btn green" data-color="green" title="Vert"></button>
+                <button class="color-btn yellow" data-color="yellow" title="Jaune"></button>
+                <button class="color-btn red" data-color="red" title="Rouge"></button>
+                <button class="color-btn clear" data-color="clear" title="Effacer">CLEAR</button>
             </div>
         `;
     },
@@ -27,10 +22,8 @@ const PadsColors = {
     // ===== INITIALISATION =====
     init() {
         if (this.isInitialized) return;
-        
         this.setupEventListeners();
         this.updateColorsState();
-        
         this.isInitialized = true;
     },
 
@@ -44,71 +37,20 @@ const PadsColors = {
             }
         });
 
-        window.addEventListener('mode-changed', (event) => {
-            const { mode } = event.detail;
-            this.currentMode = mode;
-            this.resetSelections();
-        });
-
-        window.addEventListener('pad-selected', (event) => {
-            const { padNumber } = event.detail;
-            if (this.isPadSelectable(padNumber)) {
-                this.selectedPad = padNumber;
-                this.selectedGroup = null;
-                this.updateColorsState();
-            } else {
-                this.selectedPad = null;
-                this.updateColorsState();
-            }
-        });
-
-        window.addEventListener('group-selected', (event) => {
-            const { groupId, sequencerEnabled } = event.detail;
-            this.selectedGroup = groupId;
-            this.selectedPad = null;
-            this.colorsEnabled = !sequencerEnabled;
-            this.updateColorsState();
-        });
-
-        window.addEventListener('sequencer-colors-disabled', () => {
-            this.colorsEnabled = false;
-            this.updateColorsState();
-        });
-
-        window.addEventListener('sequencer-colors-enabled', () => {
-            this.colorsEnabled = true;
-            this.updateColorsState();
-        });
-
-        window.addEventListener('clear-selection', () => {
-            this.resetSelections();
-        });
-
-        window.addEventListener('group-assigned', () => {
-            if (this.selectedPad && this.isPadOccupiedByGroup(this.selectedPad)) {
-                this.selectedPad = null;
-                this.updateColorsState();
-            }
-        });
-
-        window.addEventListener('pad-assigned', () => {
-            this.updateColorsState();
-        });
-
-        window.addEventListener('sequencer-controls-active', (event) => {
-            const { active, controlButtons } = event.detail;
-            if (active && this.selectedPad && this.isPadControlSequencer(this.selectedPad)) {
-                this.selectedPad = null;
-                this.updateColorsState();
-            }
-        });
+        window.addEventListener('mode-changed', (e) => { this.currentMode = e.detail.mode; this.resetSelections(); });
+        window.addEventListener('pad-selected', (e) => this.handlePadSelected(e.detail.padNumber));
+        window.addEventListener('group-selected', (e) => this.handleGroupSelected(e.detail.groupId, e.detail.sequencerEnabled));
+        window.addEventListener('sequencer-colors-disabled', () => { this.colorsEnabled = false; this.updateColorsState(); });
+        window.addEventListener('sequencer-colors-enabled', () => { this.colorsEnabled = true; this.updateColorsState(); });
+        window.addEventListener('clear-selection', () => this.resetSelections());
+        window.addEventListener('group-assigned', () => this.handleAssignmentChange());
+        window.addEventListener('pad-assigned', () => this.handleAssignmentChange());
+        window.addEventListener('sequencer-controls-active', (e) => this.handleSequencerControls(e.detail.active, e.detail.controlButtons));
     },
 
     // ===== GESTION COULEURS =====
     handleColorClick(colorName) {
-        if (!this.colorsEnabled) {
-            return;
-        }
+        if (!this.colorsEnabled) return;
 
         const color = colorName === 'clear' ? null : colorName;
 
@@ -120,21 +62,14 @@ const PadsColors = {
     },
 
     applyPadColor(color) {
-        if (!this.selectedPad) {
-            return;
-        }
-
-        if (!this.isPadSelectable(this.selectedPad)) {
+        if (!this.selectedPad || !this.isPadSelectable(this.selectedPad)) {
             this.selectedPad = null;
             this.updateColorsState();
             return;
         }
 
         window.dispatchEvent(new CustomEvent('apply-pad-color', {
-            detail: { 
-                padNumber: this.selectedPad, 
-                color 
-            }
+            detail: { padNumber: this.selectedPad, color }
         }));
 
         this.selectedPad = null;
@@ -142,45 +77,63 @@ const PadsColors = {
     },
 
     applyGroupColor(color) {
-        if (!this.selectedGroup) {
-            return;
-        }
+        if (!this.selectedGroup) return;
 
         window.dispatchEvent(new CustomEvent('group-color-request', {
-            detail: { 
-                groupId: this.selectedGroup,
-                color 
-            }
+            detail: { groupId: this.selectedGroup, color }
         }));
     },
 
-    // ===== VALIDATION SIMPLIFIÉE 7 GROUPES =====
+    // ===== GESTION SÉLECTIONS =====
+    handlePadSelected(padNumber) {
+        if (this.isPadSelectable(padNumber)) {
+            this.selectedPad = padNumber;
+            this.selectedGroup = null;
+            this.updateColorsState();
+        } else {
+            this.selectedPad = null;
+            this.updateColorsState();
+        }
+    },
+
+    handleGroupSelected(groupId, sequencerEnabled) {
+        this.selectedGroup = groupId;
+        this.selectedPad = null;
+        this.colorsEnabled = !sequencerEnabled;
+        this.updateColorsState();
+    },
+
+    handleAssignmentChange() {
+        if (this.selectedPad && this.isPadOccupiedByGroup(this.selectedPad)) {
+            this.selectedPad = null;
+            this.updateColorsState();
+        }
+    },
+
+    handleSequencerControls(active, controlButtons) {
+        if (active && this.selectedPad && this.isPadControlSequencer(this.selectedPad)) {
+            this.selectedPad = null;
+            this.updateColorsState();
+        }
+    },
+
+    resetSelections() {
+        this.selectedPad = null;
+        this.selectedGroup = null;
+        this.updateColorsState();
+    },
+
+    // ===== VALIDATION =====
     isPadSelectable(padNumber) {
-        // Validation simple : pas de calculs dynamiques complexes
-        if (this.isPadOccupiedByGroup(padNumber)) {
-            return false;
-        }
-        
-        if (this.isPadControlSequencer(padNumber)) {
-            return false;
-        }
-        
-        return true;
+        return !this.isPadOccupiedByGroup(padNumber) && !this.isPadControlSequencer(padNumber);
     },
 
     isPadOccupiedByGroup(padNumber) {
-        // Utiliser API simplifiée PadsContent pour 7 groupes
-        if (window.PadsContent && window.PadsContent.isPadInGroupAssignment) {
-            return window.PadsContent.isPadInGroupAssignment(padNumber);
-        }
-        return false;
+        return window.PadsContent?.isPadInGroupAssignment?.(padNumber) || false;
     },
 
     isPadControlSequencer(padNumber) {
-        if (window.PadsContent && window.PadsContent.isPadControlSequencer) {
-            return window.PadsContent.isPadControlSequencer(padNumber);
-        }
-        return false;
+        return window.PadsContent?.isPadControlSequencer?.(padNumber) || false;
     },
 
     // ===== ÉTATS VISUELS =====
@@ -222,74 +175,15 @@ const PadsColors = {
         return false;
     },
 
-    resetSelections() {
-        this.selectedPad = null;
-        this.selectedGroup = null;
-        this.updateColorsState();
-    },
-
-    // ===== UTILITAIRES 7 GROUPES =====
-    findGroupForPad(padNumber) {
-        if (window.PadsContent && window.PadsContent.findGroupForPad) {
-            return window.PadsContent.findGroupForPad(padNumber);
-        }
-        return null;
-    },
-
-    isGroupAssigned(groupId) {
-        if (window.PadsContent && window.PadsContent.isGroupAssigned) {
-            return window.PadsContent.isGroupAssigned(groupId);
-        }
-        return false;
-    },
-
     // ===== API PUBLIQUE =====
-    getSelectedPad() {
-        return this.selectedPad;
-    },
-
-    getSelectedGroup() {
-        return this.selectedGroup;
-    },
-
-    areColorsEnabled() {
-        return this.colorsEnabled;
-    },
-
-    getCurrentMode() {
-        return this.currentMode;
-    },
-
-    setColorsEnabled(enabled) {
-        this.colorsEnabled = enabled;
-        this.updateColorsState();
-    },
-
-    // ===== VALIDATION PUBLIQUE =====
-    isPadAvailableForColor(padNumber) {
-        return this.isPadSelectable(padNumber);
-    },
-
-    canApplyColorToPad(padNumber) {
-        return this.colorsEnabled && this.isPadSelectable(padNumber);
-    },
-
-    canApplyColorToGroup(groupId) {
-        return this.colorsEnabled && groupId !== null;
-    },
-
-    // ===== DEBUGGING SIMPLIFIÉ =====
-    getState() {
-        return {
-            currentMode: this.currentMode,
-            selectedPad: this.selectedPad,
-            selectedGroup: this.selectedGroup,
-            colorsEnabled: this.colorsEnabled,
-            hasValidSelection: this.hasValidSelection(),
-            isPadSelectable: this.selectedPad ? this.isPadSelectable(this.selectedPad) : null,
-            groupForSelectedPad: this.selectedPad ? this.findGroupForPad(this.selectedPad) : null
-        };
-    }
+    getSelectedPad() { return this.selectedPad; },
+    getSelectedGroup() { return this.selectedGroup; },
+    areColorsEnabled() { return this.colorsEnabled; },
+    getCurrentMode() { return this.currentMode; },
+    setColorsEnabled(enabled) { this.colorsEnabled = enabled; this.updateColorsState(); },
+    isPadAvailableForColor(padNumber) { return this.isPadSelectable(padNumber); },
+    canApplyColorToPad(padNumber) { return this.colorsEnabled && this.isPadSelectable(padNumber); },
+    canApplyColorToGroup(groupId) { return this.colorsEnabled && groupId !== null; }
 };
 
 // ===== EXPORT GLOBAL =====
